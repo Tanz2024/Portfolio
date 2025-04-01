@@ -1,0 +1,243 @@
+/* src/pages/Achievements.css */
+
+.achievements {
+    font-family: "Segoe UI", sans-serif;
+    background: #f9f9f9;
+    padding: 2rem;
+    color: #333;
+  }
+  
+  .achievements-header {
+    text-align: center;
+    padding: 1rem 0;
+    background: linear-gradient(to right, #ff6464, #ff9999);
+    color: white;
+    border-radius: 6px;
+    margin-bottom: 2rem;
+  }
+  
+  .achievements-header h1 {
+    margin: 0;
+    font-size: 2.5rem;
+  }
+  
+  .achievements-header p {
+    margin: 0.5rem 0 0;
+    font-size: 1.2rem;
+  }
+  
+  /* Achievements List */
+  .achievements-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+    margin-bottom: 3rem;
+  }
+  
+  .achievement-item {
+    background: #fff;
+    border-radius: 10px;
+    padding: 1rem;
+    max-width: 300px;
+    width: 100%;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .achievement-item:hover {
+    transform: translateY(-5px);
+  }
+  
+  .achievement-image {
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+  }
+  
+  /* Achievement Content */
+  .achievement-content {
+    padding: 0.5rem 0;
+  }
+  
+  .achievement-content h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #333;
+  }
+  
+  /* "What I Learned" Section */
+  .achievement-learning {
+    background: #f1f1f1;
+    padding: 0.75rem;
+    border-radius: 6px;
+    margin-top: 0.5rem;
+  }
+  
+  .achievement-learning h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.2rem;
+    color: #ff6464;
+  }
+  
+  .achievement-learning p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+  
+  /* "Skills/Technologies" Section */
+  .achievement-skills {
+    margin-top: 0.75rem;
+  }
+  
+  .achievement-skills h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.2rem;
+    color: #ff6464;
+  }
+  
+  .achievement-skills .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .achievement-skills .tag {
+    background: #ffebeb;
+    color: #ff6464;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  
+  /* Certificate Link */
+  .certificate-link {
+    display: inline-block;
+    margin-top: 0.5rem;
+    color: #ff6464;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  
+  .certificate-link:hover {
+    text-decoration: underline;
+  }
+  
+  /* Video */
+  .achievement-video {
+    width: 100%;
+    height: auto;
+    margin-top: 1rem;
+    border-radius: 6px;
+  }
+  
+  /* Category and Year */
+  .achievement-category,
+  .achievement-year {
+    font-size: 0.9rem;
+    color: #555;
+    margin: 0.25rem 0;
+  }
+  
+  /* Delete Button (Admin Only) */
+  .delete-button {
+    background: #dc3545;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    align-self: center;
+  }
+  
+  .delete-button:hover {
+    background: #c82333;
+  }
+  
+  /* Form Section */
+  .achievement-form-section {
+    max-width: 600px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+  
+  .achievement-form-section h2 {
+    text-align: center;
+    margin-bottom: 1rem;
+    font-size: 2rem;
+    color: #ff6464;
+  }
+  
+  .achievement-form .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .achievement-form label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  .achievement-form input[type="text"],
+  .achievement-form input[type="url"],
+  .achievement-form input[type="file"],
+  .achievement-form textarea,
+  .achievement-form input[type="date"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border 0.3s ease;
+  }
+  
+  .achievement-form input:focus,
+  .achievement-form textarea:focus {
+    border-color: #ff6464;
+    outline: none;
+  }
+  
+  .achievement-form textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+  
+  .submit-button {
+    background: #ff6464;
+    color: white;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    display: block;
+    margin: 0 auto;
+  }
+  
+  .submit-button:hover {
+    background: #ff7d7d;
+  }
+  
+  .form-success {
+    color: #28a745;
+    text-align: center;
+    margin-top: 1rem;
+  }
+  
+  .form-error {
+    color: #dc3545;
+    text-align: center;
+    margin-top: 1rem;
+  }
+  

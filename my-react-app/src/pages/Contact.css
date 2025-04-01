@@ -1,0 +1,104 @@
+.contact {
+  font-family: 'Segoe UI', sans-serif;
+  background: #fef6f6;
+  color: #333;
+  padding-bottom: 4rem;
+}
+
+.contact-header {
+  background: linear-gradient(to right, #ff6464, #ff9999);
+  color: white;
+  padding: 3rem 1rem;
+  text-align: center;
+  border-bottom: 3px solid #ffdada;
+}
+
+.contact-header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+}
+
+.contact-header p {
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+  opacity: 0.95;
+}
+
+.contact-main {
+  padding: 2rem;
+}
+
+.contact-form {
+  background: #fff;
+  padding: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  transition: border 0.3s ease;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #ff6464;
+  outline: none;
+}
+
+textarea {
+  resize: none; /* Disable drag resize */
+  min-height: 140px;
+}
+
+.char-count {
+  text-align: right;
+  font-size: 0.85rem;
+  color: #888;
+  margin-top: 0.25rem;
+}
+
+button.submit-button {
+  background: #ff6464;
+  color: white;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+button.submit-button:hover {
+  background: #ff7d7d;
+}
+
+/* Feedback Messages */
+.form-success {
+  color: #28a745;
+  margin-top: 1rem;
+  font-weight: 500;
+}
+
+.form-error {
+  color: #dc3545;
+  margin-top: 1rem;
+  font-weight: 500;
+}

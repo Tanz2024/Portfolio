@@ -1,0 +1,63 @@
+.navbar {
+    background-color: #fff;          /* White background */
+    padding: 0.5rem 1rem;
+    color: #21243d;                  /* Dark text color */
+    border-bottom: 1px solid #e0e0e0; /* Light gray border */
+  }
+  
+  .nav-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .nav-logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #21243d;
+  }
+  
+  .nav-menu {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .nav-menu li {
+    margin-left: 1rem;
+  }
+  
+  /* Default nav link styles */
+  .nav-link {
+    color: #21243d;
+    text-decoration: none;
+    padding: 0.25rem 0.5rem;
+    transition: background-color 0.3s ease;
+  }
+  
+  /* Hover and focus effect */
+  .nav-link:hover,
+  .nav-link:focus {
+    background-color: #f0f0f0;
+    border-radius: 4px;
+  }
+  
+  /* Active state: add class "active" when the link is selected */
+  .nav-link.active {
+    background-color: #ff6464; /* Accent color for active link */
+    color: #fff;
+    border-radius: 4px;
+  }
+  .logout-btn {
+    background: none;
+    border: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    padding: 0;
+  }
+  .logout-btn:hover {
+    text-decoration: underline;
+  }
+  

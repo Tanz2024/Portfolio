@@ -1,0 +1,255 @@
+/* CSS Variables for Consistency */
+:root {
+  --primary-color: #ff6464;
+  --secondary-color: #21243d;
+  --text-muted: #777;
+  --bg-color: #fff;
+  --border-color: #e0e0e0;
+  --font-family: "Arial", sans-serif;
+  --transition-speed: 0.3s;
+}
+
+/* Global Reset & Base Styles */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+  background-color: var(--bg-color);
+  color: var(--secondary-color);
+}
+
+/* Flex Container for Full-Height Layout */
+.page-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Blogs Page Container: Main Content Area */
+.blogs-page {
+  flex: 1;
+  padding: 2rem;
+}
+
+/* Header */
+.blogs-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.blogs-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--secondary-color);
+}
+
+/* Category Filter */
+.blog-categories {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.category-button {
+  padding: 0.5rem 1rem;
+  background-color: #f0f0f0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color var(--transition-speed) ease;
+}
+
+.category-button:hover,
+.category-button.active {
+  background-color: var(--primary-color);
+  color: var(--bg-color);
+}
+
+/* Loading and Error States */
+.loading,
+.error {
+  text-align: center;
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  margin-top: 2rem;
+}
+
+/* Main Content */
+.blogs-main {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Sections */
+.featured-blogs,
+.recent-blogs {
+  margin-bottom: 3rem;
+}
+
+.featured-blogs h2,
+.recent-blogs h2 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: var(--primary-color);
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 0.5rem;
+}
+
+/* Blog Post */
+.blog-post {
+  background-color: var(--bg-color);
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.blog-post.featured {
+  border: 2px solid purple;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.blog-post-content {
+  flex: 1;
+}
+
+.blog-post h2 {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  color: var(--secondary-color);
+}
+
+.blog-post.featured h2 {
+  color: var(--primary-color);
+}
+
+.blog-meta {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.blog-meta span {
+  margin-right: 0.5rem;
+}
+
+.blog-post p {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.read-more {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: bold;
+  transition: color var(--transition-speed) ease;
+}
+
+.read-more:hover {
+  color: #e65555;
+}
+
+/* No Blogs Message */
+.no-blogs {
+  text-align: center;
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  margin-top: 2rem;
+}
+
+/* Footer */
+.blogs-footer {
+  text-align: left;
+  padding: 1rem;
+  background-color: var(--bg-color);
+  border-top: 1px solid var(--border-color);
+  font-size: 0.9rem;
+  color: #888;
+  margin: 0;
+}
+
+/* Timeline Styles */
+.blog-timeline {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: var(--bg-color);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.blog-timeline h4 {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+}
+
+.timeline-container {
+  position: relative;
+  margin-left: 1.5rem;
+  border-left: 3px solid #e0e0e0;
+  padding-left: 1.5rem;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -12px;
+  top: 4px;
+  width: 12px;
+  height: 12px;
+  background-color: var(--primary-color);
+  border: 2px solid var(--bg-color);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3);
+}
+
+.timeline-content {
+  background-color: #f7f7f7;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.timeline-date {
+  font-weight: bold;
+  color: var(--text-muted);
+  margin-bottom: 0.3rem;
+  font-size: 0.95rem;
+}
+
+.timeline-detail {
+  color: #444;
+  line-height: 1.4;
+  font-size: 0.95rem;
+}
+
+/* Media Query for Mobile */
+@media (max-width: 600px) {
+  .timeline-container {
+    margin-left: 1rem;
+    padding-left: 1rem;
+  }
+  .timeline-dot {
+    left: -10px;
+  }
+  .timeline-content {
+    padding: 0.5rem 0.75rem;
+  }
+}

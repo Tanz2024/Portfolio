@@ -1,0 +1,263 @@
+/* Importing Google Font: Poppins */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+}
+
+/* Overall container */
+.admin-login-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+/* Left side agenda/portfolio panel with blurred overlay */
+.info-panel {
+  flex: 1;
+  position: relative;
+  background: 
+    linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+    url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?&auto=format&fit=crop&w=800&q=80")
+      center/cover no-repeat;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  color: #ffffff;
+  text-align: center;
+}
+
+/* Optional overlay if further darkening is needed */
+.info-panel .overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* Content within the info panel */
+.info-content {
+  position: relative;
+  z-index: 1;
+}
+
+.brand-title {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.brand-subtitle,
+.guest-info {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+/* Right side login card */
+.login-card {
+  flex: 1;
+  max-width: 480px;
+  margin: auto;
+  padding: 2rem;
+  background-color: #ffffff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+.login-title {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.error {
+  color: #d8000c;
+  background-color: #ffbaba;
+  padding: 0.75rem;
+  border-radius: 4px;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+/* Form styling */
+.login-form .form-group {
+  margin-bottom: 1rem;
+}
+
+.login-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  transition: border-color 0.3s ease;
+}
+
+.login-form input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* Buttons */
+.btn {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+/* Updated admin login button */
+.admin-login-btn {
+  background-color: #ff6464;
+  color: #fff;
+}
+
+.admin-login-btn:hover,
+.admin-login-btn:focus {
+  background-color: #ff4c4c;
+}
+
+/* Updated guest login button with a similar complementary tone */
+.guest-login-btn {
+  background-color: #ff7f7f;
+  color: #fff;
+}
+
+.guest-login-btn:hover,
+.guest-login-btn:focus {
+  background-color: #ff6f6f;
+}
+
+/* Separator styling */
+.separator {
+  text-align: center;
+  margin: 1.5rem 0;
+  color: #777;
+  position: relative;
+}
+
+.separator span {
+  background-color: #fff;
+  padding: 0 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.separator::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #ccc;
+  z-index: 0;
+}
+
+/* Guest login note and badge */
+.guest-note {
+  text-align: center;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.guest-badge {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  background: #eee;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+/* Toast notification */
+.toast {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  background-color: #333;
+  color: #fff;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  opacity: 0.9;
+  z-index: 1000;
+  animation: fadeInToast 0.5s ease;
+}
+
+/* Keyframes for fade-in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInToast {
+  from {
+    opacity: 0;
+    transform: translateY(20%);
+  }
+  to {
+    opacity: 0.9;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile responsiveness and cross-browser enhancements */
+@media (max-width: 768px) {
+  .admin-login-container {
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  .info-panel {
+    order: -1;
+    width: 100%;
+    height: 40vh; /* adjust height as needed */
+    min-height: unset;
+    padding: 1rem;
+    margin: 0;
+  }
+
+  .login-card {
+    width: 100%;
+    flex: 1;
+    height: 60vh; /* fill remaining space */
+    margin: 0;
+    padding: 1rem;
+    border-radius: 0; /* optional: remove border radius for edge-to-edge */
+  }
+}
+
+/* Remove default mobile styling for inputs and buttons */
+input,
+button {
+  -webkit-appearance: none;
+  appearance: none;
+}
