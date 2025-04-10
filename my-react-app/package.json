@@ -4,7 +4,7 @@
   "description": "React + CSS frontend using Parcel",
   "scripts": {
     "start": "parcel src/index.html --open",
-    "build": "parcel build src/index.html"
+    "dev": "parcel src/index.html --port 1235"
   },
   "keywords": [],
   "author": "",
