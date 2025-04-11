@@ -32,7 +32,9 @@ app.use(cors({
 
 // ✅ FIX 2: Handle preflight requests (important for cookies + CORS)
 app.options("*", cors());
-
+// ✅ Parse incoming JSON and cookies globally
+app.use(express.json());
+app.use(cookieParser());
 // -----------------------------
 // Ensure the uploads directory exists BEFORE using it
 // -----------------------------
@@ -96,29 +98,38 @@ const verifyAdmin = (req, res, next) => {
 // -----------------------------
 // LOGIN ENDPOINTS
 // -----------------------------
-app.post('/login/admin', async (req, res) => {
+app.post('/login/admin', express.json(), async (req, res) => {
   const { username, password } = req.body;
 
   const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
   const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
   if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-    const token = jwt.sign({ id: 1, role_id: 1, username }, JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign(
+      { id: 1, role_id: 1, username },
+      JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
     res.cookie("token", token, {
       httpOnly: true,
       sameSite: "None",
       secure: true,
       maxAge: 3600000
     });
-    res.json({ message: "Admin login successful" });
-  } else {
-    res.status(400).json({ error: "Invalid admin credentials" });
+
+    return res.status(200).json({ message: "Admin login successful" });
   }
+
+  res.status(400).json({ error: "Invalid admin credentials" });
 });
-app.post('/login/user', async (req, res) => {
-  const token = jwt.sign({ role_id: 2, username: "Viewer" }, JWT_SECRET, {
-    expiresIn: "1h"
-  });
+
+app.post('/login/user', express.json(), async (req, res) => {
+  const token = jwt.sign(
+    { role_id: 2, username: "Viewer" },
+    JWT_SECRET,
+    { expiresIn: "1h" }
+  );
 
   res.cookie("token", token, {
     httpOnly: true,
@@ -127,7 +138,7 @@ app.post('/login/user', async (req, res) => {
     maxAge: 3600000
   });
 
-  res.json({ message: "User login successful" });
+  res.status(200).json({ message: "User login successful" });
 });
 
 // -----------------------------
