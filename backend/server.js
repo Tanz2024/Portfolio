@@ -115,6 +115,20 @@ app.post('/login/admin', async (req, res) => {
     res.status(400).json({ error: "Invalid admin credentials" });
   }
 });
+app.post('/login/user', async (req, res) => {
+  const token = jwt.sign({ role_id: 2, username: "Viewer" }, JWT_SECRET, {
+    expiresIn: "1h"
+  });
+
+  res.cookie("token", token, {
+    httpOnly: true,
+    sameSite: "None",
+    secure: true,
+    maxAge: 3600000
+  });
+
+  res.json({ message: "User login successful" });
+});
 
 // -----------------------------
 // File Upload Setup with multer
