@@ -27,7 +27,7 @@ const Footer = () => {
 
         <div className="social-links">
           <a
-            href="https://github.com/your-username"
+            href="https://github.com/Tanz2024"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub Profile"
@@ -35,7 +35,7 @@ const Footer = () => {
             <FaGithub />
           </a>
           <a
-            href="https://linkedin.com/in/your-username"
+            href="https://linkedin.com/in/tanz2023"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="LinkedIn Profile"
@@ -43,7 +43,7 @@ const Footer = () => {
             <FaLinkedin />
           </a>
           <a
-            href="https://twitter.com/your-username"
+            href="https://twitter.com/@Heytanz100"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Twitter Profile"
