@@ -19,3 +19,4 @@ backend/uploads/
 # System files
 .DS_Store
 
+cookie.txt
