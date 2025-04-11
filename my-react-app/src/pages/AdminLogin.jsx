@@ -20,7 +20,7 @@ const AdminLogin = () => {
   const handleAdminLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:5000/login/admin", {
+      const response = await fetch("https://portfolio-1-716m.onrender.com/login/admin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include", // Include cookies
@@ -51,7 +51,7 @@ const AdminLogin = () => {
 
   const handleGuestView = async () => {
     try {
-      const response = await fetch("http://localhost:5000/login/user", {
+      const response = await fetch("https://portfolio-1-716m.onrender.com/login/user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

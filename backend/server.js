@@ -11,6 +11,28 @@ const jwt = require('jsonwebtoken');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const allowedOrigins = [
+  "https://tanzimportfolio.web.app",
+  "https://portfolio-tfli.onrender.com"
+];
+
+// ✅ FIX 1: CORS should be the VERY FIRST middleware
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.error("Blocked by CORS:", origin);
+      return callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
+}));
+
+// ✅ FIX 2: Handle preflight requests (important for cookies + CORS)
+app.options("*", cors());
+
 // -----------------------------
 // Ensure the uploads directory exists BEFORE using it
 // -----------------------------
@@ -38,12 +60,6 @@ const pool = new Pool({
   connectionString: process.env.PG_CONNECTION_STRING,
 });
 
-// -----------------------------
-// Middleware Setup
-// -----------------------------
-app.use(cors({ credentials: true, origin: "http://localhost:1235" }));
-app.use(express.json());
-app.use(cookieParser());
 
 // Optional: Log requests to the /uploads route for debugging
 app.use("/uploads", (req, res, next) => {
@@ -84,7 +100,7 @@ app.post('/login/admin', async (req, res) => {
   const { username, password } = req.body;
   if (username === "Donald Duck" && password === "duck123") {
     const token = jwt.sign({ id: 1, role_id: 1, username }, JWT_SECRET, { expiresIn: "1h" });
-    res.cookie("token", token, { httpOnly: true, sameSite: "Lax", secure: false, maxAge: 3600000 });
+    res.cookie("token", token, { httpOnly: true, sameSite: "None", secure: true, maxAge: 3600000 });
 
     res.json({ message: "Admin login successful" });
   } else {
