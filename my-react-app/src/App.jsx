@@ -5,7 +5,7 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
-
+import { useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -14,17 +14,16 @@ import Blogs from "./pages/Blogs";
 import Contact from "./pages/Contact";
 import Achievements from "./pages/Achievements";
 import AdminLogin from "./pages/AdminLogin";
-
 const AppLayout = () => {
   const location = useLocation();
 
-  // We want to hide the Navbar & Footer if the path is "/admin/login"
-  const hideNavAndFooter = location.pathname === "/admin/login";
+  // Only hide the navbar for /admin/login
+  const hideNavbar = location.pathname === "/admin/login";
 
   return (
     <>
-      {/* Only render Navbar if not on admin login page */}
-      {!hideNavAndFooter && <Navbar />}
+      {/* Hide navbar only on admin login */}
+      {!hideNavbar && <Navbar />}
 
       <main>
         <Routes>
@@ -37,11 +36,12 @@ const AppLayout = () => {
         </Routes>
       </main>
 
-      {/* Only render Footer if not on admin login page */}
-      {!hideNavAndFooter && <Footer />}
+      {/* Always show footer */}
+      <Footer />
     </>
   );
 };
+
 
 const App = () => {
   return (

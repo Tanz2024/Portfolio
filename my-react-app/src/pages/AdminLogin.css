@@ -8,16 +8,22 @@
 body {
   margin: 0;
   font-family: "Poppins", sans-serif;
-}
-
-/* Overall container */
-.admin-login-container {
-  display: flex;
-  min-height: 100vh;
   background-color: #f8f9fa;
 }
 
-/* Left side agenda/portfolio panel with blurred overlay */
+.admin-login-container {
+  display: flex;
+  flex-direction: row;
+  min-height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+@supports (height: 100dvh) {
+  .admin-login-container {
+    height: 100dvh;
+  }
+}
+/* Info Panel: Logo/Message/Image at top */
 .info-panel {
   flex: 1;
   position: relative;
@@ -33,7 +39,6 @@ body {
   text-align: center;
 }
 
-/* Optional overlay if further darkening is needed */
 .info-panel .overlay {
   position: absolute;
   top: 0;
@@ -42,7 +47,6 @@ body {
   bottom: 0;
 }
 
-/* Content within the info panel */
 .info-content {
   position: relative;
   z-index: 1;
@@ -60,7 +64,7 @@ body {
   margin-bottom: 1rem;
 }
 
-/* Right side login card */
+/* Login Card (Form) styling */
 .login-card {
   flex: 1;
   max-width: 480px;
@@ -91,7 +95,7 @@ body {
 
 /* Form styling */
 .login-form .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .login-form label {
@@ -103,50 +107,72 @@ body {
 
 .login-form input {
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.75rem 1rem;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 8px;
+  font-size: 1rem;
   transition: border-color 0.3s ease;
 }
 
 .login-form input:focus {
-  border-color: #007bff;
   outline: none;
+  border-color: #0066ff;
+  box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.2);
+}
+
+/* Password Visibility Toggle */
+.password-input-container {
+  position: relative;
+}
+
+.password-input-container input {
+  width: 100%;
+  padding-right: 2.5rem;
+}
+
+.toggle-password-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #555;
 }
 
 /* Buttons */
 .btn {
   display: block;
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.75rem 1rem;
   margin-top: 1rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 1rem;
+  font-weight: 600;
   transition: background-color 0.3s ease;
 }
 
-/* Updated admin login button */
 .admin-login-btn {
-  background-color: #ff6464;
+  background-color: #0066ff;
   color: #fff;
 }
 
 .admin-login-btn:hover,
 .admin-login-btn:focus {
-  background-color: #ff4c4c;
+  background-color: #0052cc;
 }
 
-/* Updated guest login button with a similar complementary tone */
 .guest-login-btn {
-  background-color: #ff7f7f;
+  background-color: #ff6666;
   color: #fff;
 }
 
 .guest-login-btn:hover,
 .guest-login-btn:focus {
-  background-color: #ff6f6f;
+  background-color: #e04e4e;
 }
 
 /* Separator styling */
@@ -175,7 +201,7 @@ body {
   z-index: 0;
 }
 
-/* Guest login note and badge */
+/* Guest info styling */
 .guest-note {
   text-align: center;
   margin-top: 0.5rem;
@@ -192,7 +218,7 @@ body {
   border-radius: 4px;
 }
 
-/* Toast notification */
+/* Toast notification styling */
 .toast {
   position: fixed;
   bottom: 1rem;
@@ -206,7 +232,7 @@ body {
   animation: fadeInToast 0.5s ease;
 }
 
-/* Keyframes for fade-in animation */
+/* Fade-in animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -229,35 +255,78 @@ body {
   }
 }
 
-/* Mobile responsiveness and cross-browser enhancements */
+/* MOBILE RESPONSIVENESS */
+/* Tablets and small screens */
 @media (max-width: 768px) {
   .admin-login-container {
     flex-direction: column;
-    height: 100vh;
+    height: auto;
+    min-height: 100dvh;
+    overflow-y: auto;
   }
 
   .info-panel {
     order: -1;
     width: 100%;
-    height: 40vh; /* adjust height as needed */
-    min-height: unset;
-    padding: 1rem;
-    margin: 0;
+    height: auto;
+    padding: 2rem 1rem;
+    background-size: cover;
+    background-position: center;
   }
 
   .login-card {
-    width: 100%;
-    flex: 1;
-    height: 60vh; /* fill remaining space */
-    margin: 0;
-    padding: 1rem;
-    border-radius: 0; /* optional: remove border radius for edge-to-edge */
+    width: 90%;
+    flex: none;
+    margin: 0 auto;
+    padding: 1.5rem;
+    border-radius: 0;
+    max-height: none;
   }
 }
 
-/* Remove default mobile styling for inputs and buttons */
+
+/* Phones and very small screens */
+@media (max-width: 480px) {
+  .info-panel {
+    height: auto;
+    padding: 1rem;
+  }
+
+  .login-card {
+    width: 95%;
+    padding: 1rem;
+  }
+
+  .brand-title {
+    font-size: 1.8rem;
+  }
+
+  .brand-subtitle,
+  .guest-info {
+    font-size: 1rem;
+  }
+}
+
+
+/* Remove default mobile styling */
 input,
 button {
   -webkit-appearance: none;
   appearance: none;
+}
+html, body {
+  height: 100%;
+}
+
+input,
+button {
+  -webkit-appearance: none;
+  appearance: none;
+  font-family: inherit;
+}
+
+@supports not (height: 100dvh) {
+  .admin-login-container {
+    height: 100vh;
+  }
 }
