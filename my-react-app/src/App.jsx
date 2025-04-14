@@ -1,3 +1,4 @@
+// App.jsx
 import React from "react";
 import {
   BrowserRouter as Router,
@@ -5,7 +6,6 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
-import { useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -14,17 +14,16 @@ import Blogs from "./pages/Blogs";
 import Contact from "./pages/Contact";
 import Achievements from "./pages/Achievements";
 import AdminLogin from "./pages/AdminLogin";
+
 const AppLayout = () => {
   const location = useLocation();
 
-  // Only hide the navbar for /admin/login
-  const hideNavbar = location.pathname === "/admin/login";
+  // For admin login, we want the mobile version—hide the navbar (and optionally the footer).
+  const isAdminLogin = location.pathname === "/admin/login";
 
   return (
     <>
-      {/* Hide navbar only on admin login */}
-      {!hideNavbar && <Navbar />}
-
+      {!isAdminLogin && <Navbar />}
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -35,13 +34,10 @@ const AppLayout = () => {
           <Route path="/admin/login" element={<AdminLogin />} />
         </Routes>
       </main>
-
-      {/* Always show footer */}
-      <Footer />
+      {!isAdminLogin && <Footer />}
     </>
   );
 };
-
 
 const App = () => {
   return (

@@ -80,27 +80,27 @@ const Home = () => {
     const fetchData = async () => {
       try {
         // Fetch Blogs
-        const blogsRes = await fetch("https://portfolio-1-716m.onrender.com/api/blogs");
+        const blogsRes = await fetch("http://localhost:5000/api/blogs");
         if (blogsRes.ok) {
           setBlogs(await blogsRes.json());
         }
         setLoadingBlogs(false);
 
         // Fetch Projects
-        const projectsRes = await fetch("https://portfolio-1-716m.onrender.com/api/projects");
+        const projectsRes = await fetch("http://localhost:5000/api/projects");
         if (projectsRes.ok) {
           setProjects(await projectsRes.json());
         }
         setLoadingProjects(false);
 
         // Fetch Testimonials
-        const testimonialsRes = await fetch("https://portfolio-1-716m.onrender.com/api/testimonials");
+        const testimonialsRes = await fetch("http://localhost:5000/api/testimonials");
         if (testimonialsRes.ok) {
           setTestimonials(await testimonialsRes.json());
         }
 
         // Authenticate User (to know if current viewer is admin)
-        const authRes = await fetch("https://portfolio-1-716m.onrender.com/authenticate", { credentials: "include" });
+        const authRes = await fetch("http://localhost:5000/authenticate", { credentials: "include" });
         if (authRes.ok) {
           const authData = await authRes.json();
           if (authData) {
@@ -113,16 +113,16 @@ const Home = () => {
         }
 
         // Fetch Profile Image
-        const profileRes = await fetch("https://portfolio-1-716m.onrender.com/api/public/profile-image");
+        const profileRes = await fetch("http://localhost:5000/api/public/profile-image");
         if (profileRes.ok) {
           const data = await profileRes.json();
           if (data.profileImageURL) {
-            setProfileImageURL("https://portfolio-1-716m.onrender.com" + data.profileImageURL);
+            setProfileImageURL("http://localhost:5000" + data.profileImageURL);
           }
         }
         
         // Fetch Bio Data from public endpoint so all users see the updated info
-        const bioRes = await fetch("https://portfolio-1-716m.onrender.com/api/public/profile");
+        const bioRes = await fetch("http://localhost:5000/api/public/profile");
         if (bioRes.ok) {
           const bioInfo = await bioRes.json();
           // Map backend field "bio" to "description" for your state
@@ -162,7 +162,7 @@ const Home = () => {
   // Resume Download
   // -----------------------------
   const handleResumeDownload = () => {
-    window.open("https://portfolio-1-716m.onrender.com/api/resume/download", "_blank");
+    window.open("http://localhost:5000/api/resume/download", "_blank");
   };
 
   // -----------------------------
@@ -193,7 +193,7 @@ const Home = () => {
     try {
       const formData = new FormData();
       formData.append("resume", resumeFile);
-      const res = await fetch("https://portfolio-1-716m.onrender.com/api/resume", {
+      const res = await fetch("http://localhost:5000/api/resume", {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -236,7 +236,7 @@ const Home = () => {
     try {
       const formData = new FormData();
       formData.append("profileImage", profileImageFile);
-      const res = await fetch("https://portfolio-1-716m.onrender.com/api/profile-image", {
+      const res = await fetch("http://localhost:5000/api/profile-image", {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -245,7 +245,7 @@ const Home = () => {
         const data = await res.json();
         setProfileImageUploadMessage(data.message || "Profile image updated successfully!");
         setProfileImageUploadError("");
-        setProfileImageURL("https://portfolio-1-716m.onrender.com" + data.profileImageURL);
+        setProfileImageURL("http://localhost:5000" + data.profileImageURL);
         toast.success("Profile image updated!");
       } else {
         const errData = await res.json();
@@ -277,7 +277,7 @@ const Home = () => {
     e.preventDefault();
     try {
       // Only admin (authenticated via token) can submit the update.
-      const res = await fetch("https://portfolio-1-716m.onrender.com/api/user/profile", {
+      const res = await fetch("http://localhost:5000/api/user/profile", {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -307,7 +307,7 @@ const Home = () => {
   const handleDeleteTestimonial = async (testimonialId) => {
     if (!window.confirm("Are you sure you want to delete this testimonial?")) return;
     try {
-      const res = await fetch(`https://portfolio-1-716m.onrender.com/api/testimonials/${testimonialId}`, {
+      const res = await fetch(`http://localhost:5000/api/testimonials/${testimonialId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -329,7 +329,7 @@ const Home = () => {
   const handleDeleteProject = async (projectId) => {
     if (!window.confirm("Are you sure you want to delete this project?")) return;
     try {
-      const res = await fetch(`https://portfolio-1-716m.onrender.com/api/projects/${projectId}`, {
+      const res = await fetch(`http://localhost:5000/api/projects/${projectId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -376,7 +376,7 @@ const Home = () => {
       rating: testimonialRating,
     };
     try {
-      const res = await fetch("https://portfolio-1-716m.onrender.com/api/testimonials", {
+      const res = await fetch("http://localhost:5000/api/testimonials", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newTestimonial),
@@ -443,7 +443,7 @@ const Home = () => {
   // Render a Screenshot (Image/PDF) with Click-to-Preview
   // -----------------------------
   const renderScreenshot = (fileUrl, index) => {
-    const fullUrl = `https://portfolio-1-716m.onrender.com${fileUrl}`;
+    const fullUrl = `http://localhost:5000${fileUrl}`;
     const isPdf = fileUrl.toLowerCase().endsWith(".pdf");
     return (
       <div key={index} className="file-preview" style={{ flex: "1 0 auto" }}>
@@ -638,7 +638,7 @@ const Home = () => {
                     <div className="screenshots-row" style={{ display: "flex", gap: "0.5rem" }}>
                       {screenshots.length > 0 &&
                         screenshots.map((screenshot, index) => {
-                          const fullUrl = `https://portfolio-1-716m.onrender.com${screenshot}`;
+                          const fullUrl = `http://localhost:5000${screenshot}`;
                           const isPdf = screenshot.toLowerCase().endsWith(".pdf");
                           return (
                             <div key={index} className="file-preview">

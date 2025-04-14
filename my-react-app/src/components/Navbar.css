@@ -1,63 +1,148 @@
+/* ----------------------------- */
+/* Base Mobile-First Styling */
+/* ----------------------------- */
 .navbar {
-    background-color: #fff;          /* White background */
-    padding: 0.5rem 1rem;
-    color: #21243d;                  /* Dark text color */
-    border-bottom: 1px solid #e0e0e0; /* Light gray border */
-  }
-  
+  background-color: #fff;           /* White background */
+  padding: 0.5rem 1rem;
+  color: #21243d;                   /* Dark text color */
+  border-bottom: 1px solid #e0e0e0;  /* Light gray border */
+}
+
+.nav-container {
+  display: flex;
+  flex-direction: column;           /* Stack vertically on mobile */
+  align-items: flex-start;
+  justify-content: space-between;
+  position: relative;
+}
+
+.nav-logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #21243d;
+  margin-bottom: 0.5rem;
+}
+
+/* Hamburger toggle button */
+.nav-toggle {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  align-self: flex-end;
+  margin-bottom: 1rem;
+  /* Ensure a minimum touch-target size */
+  padding: 0.5rem;
+}
+
+/* Nav menu container */
+.nav-menu {
+  list-style: none;
+  display: none;                      /* Hidden by default */
+  flex-direction: column;             /* Vertical stacking */
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  transition: max-height 0.3s ease;
+  overflow: hidden;
+}
+
+/* Open state for dropdown */
+.nav-menu.open {
+  display: flex;
+}
+
+/* Individual menu items */
+.nav-menu li {
+  margin: 0.5rem 0;                 /* Vertical spacing between links */
+}
+
+/* Nav link styling */
+.nav-link {
+  color: #21243d;
+  text-decoration: none;
+  display: block;
+  padding: 0.5rem 1rem;              /* Adequate tap area */
+  transition: background-color 0.3s ease;
+  border-radius: 4px;
+}
+
+/* Hover/focus state */
+.nav-link:hover,
+.nav-link:focus {
+  background-color: #f0f0f0;
+}
+
+/* Active link indicator */
+.nav-link.active {
+  background-color: #ff6464;         /* Accent color */
+  color: #fff;
+}
+
+/* Logout button inherits the same styling */
+.logout-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  text-align: left;
+}
+
+/* Hover state for logout button */
+.logout-btn:hover {
+  text-decoration: underline;
+}
+
+/* ----------------------------- */
+/* Tablet & Desktop Styles */
+/* ----------------------------- */
+@media (min-width: 768px) {
   .nav-container {
-    display: flex;
+    flex-direction: row;           /* Horizontal layout */
     align-items: center;
-    justify-content: space-between;
   }
   
   .nav-logo {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #21243d;
+    margin-bottom: 0;              /* Remove spacing for horizontal layout */
+  }
+  
+  .nav-toggle {
+    display: none;                /* Hide hamburger on larger screens */
   }
   
   .nav-menu {
-    list-style: none;
-    display: flex;
+    display: flex !important;     /* Always show menu horizontally */
+    flex-direction: row;
     margin: 0;
-    padding: 0;
+    width: auto;
+    overflow: visible;
   }
   
   .nav-menu li {
-    margin-left: 1rem;
+    margin-left: 1rem;            /* Horizontal spacing between links */
   }
   
-  /* Default nav link styles */
-  .nav-link {
-    color: #21243d;
-    text-decoration: none;
-    padding: 0.25rem 0.5rem;
-    transition: background-color 0.3s ease;
-  }
-  
-  /* Hover and focus effect */
-  .nav-link:hover,
-  .nav-link:focus {
-    background-color: #f0f0f0;
-    border-radius: 4px;
-  }
-  
-  /* Active state: add class "active" when the link is selected */
-  .nav-link.active {
-    background-color: #ff6464; /* Accent color for active link */
-    color: #fff;
-    border-radius: 4px;
-  }
   .logout-btn {
-    background: none;
-    border: none;
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
-    padding: 0;
+    text-align: center;
+    width: auto;
   }
-  .logout-btn:hover {
-    text-decoration: underline;
+}
+
+/* ----------------------------- */
+/* Small Phones Adjustments */
+/* ----------------------------- */
+@media (max-width: 480px) {
+  .navbar {
+    padding: 0.5rem;
   }
   
+  .nav-logo {
+    font-size: 1.3rem;
+  }
+  
+  .nav-link {
+    padding: 0.4rem 0.75rem;
+  }
+}

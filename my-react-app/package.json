@@ -13,7 +13,6 @@
   "dependencies": {
     "i18next": "^24.2.3",
     "i18next-browser-languagedetector": "^8.0.4",
-    "my-react-app": "file:",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-full-screen": "^1.1.1",
@@ -24,13 +23,11 @@
     "react-slick": "^0.30.3",
     "react-toastify": "^11.0.5",
     "slick-carousel": "^1.8.1",
-    "stable": "^0.1.8",
     "swiper": "^11.2.6"
   },
   "devDependencies": {
     "buffer": "^6.0.3",
-    "parcel": "^2.14.4",
-    "svgo": "^2.8.0"
+    "parcel": "^2.14.4"
   },
   "browserslist": [
     "last 2 Chrome versions",

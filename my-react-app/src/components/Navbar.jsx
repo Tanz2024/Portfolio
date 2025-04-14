@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import './Navbar.css';
 
 const Navbar = () => {
+  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { isAuthenticated, isAdmin, logout } = useAuth();
 
@@ -12,51 +13,97 @@ const Navbar = () => {
     navigate("/admin/login");
   };
 
-  // Debug logs:
-  console.log("Navbar - isAuthenticated:", isAuthenticated);
-  console.log("Navbar - isAdmin:", isAdmin);
+  const handleToggleMenu = () => {
+    setMenuOpen((prevOpen) => !prevOpen);
+  };
 
   return (
-    <nav className="navbar">
+    <nav className="navbar" role="navigation" aria-label="Main Navigation">
       <div className="nav-container">
         <h1 className="nav-logo">MyPortfolio</h1>
-        <ul className="nav-menu">
+
+        {/* Hamburger Menu Toggle (visible on mobile) */}
+        <button
+          className="nav-toggle"
+          aria-label="Toggle menu"
+          aria-expanded={menuOpen}
+          onClick={handleToggleMenu}
+        >
+          {/* You might replace this with an icon from a library like react-icons */}
+          ☰
+        </button>
+
+        <ul className={`nav-menu ${menuOpen ? 'open' : ''}`}>
           <li>
-            <NavLink to="/" end className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+            <NavLink
+              to="/"
+              end
+              className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}
+              aria-current={({ isActive }) => isActive ? "page" : undefined}
+              tabIndex={0}
+            >
               Home
             </NavLink>
           </li>
           <li>
-            <NavLink to="/work" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+            <NavLink
+              to="/work"
+              className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}
+              aria-current={({ isActive }) => isActive ? "page" : undefined}
+              tabIndex={0}
+            >
               Works
             </NavLink>
           </li>
           <li>
-            <NavLink to="/blogs" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+            <NavLink
+              to="/blogs"
+              className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}
+              aria-current={({ isActive }) => isActive ? "page" : undefined}
+              tabIndex={0}
+            >
               Blogs
             </NavLink>
           </li>
           <li>
-            <NavLink to="/achievements" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+            <NavLink
+              to="/achievements"
+              className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}
+              aria-current={({ isActive }) => isActive ? "page" : undefined}
+              tabIndex={0}
+            >
               Achievements
             </NavLink>
           </li>
           <li>
-            <NavLink to="/contact" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+            <NavLink
+              to="/contact"
+              className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}
+              aria-current={({ isActive }) => isActive ? "page" : undefined}
+              tabIndex={0}
+            >
               Contact
             </NavLink>
           </li>
-          {/* Show Logout for any authenticated user */}
+          
           {isAuthenticated && (
             <li>
-              <button className="nav-link logout-btn" onClick={handleLogout}>
+              <button 
+                className="nav-link logout-btn" 
+                onClick={handleLogout}
+                tabIndex={0}
+              >
                 Logout
               </button>
             </li>
           )}
           {isAdmin && (
             <li>
-              <NavLink to="/admin/dashboard" className="nav-link">
+              <NavLink
+                to="/admin/dashboard"
+                className="nav-link"
+                tabIndex={0}
+              >
                 Admin Panel
               </NavLink>
             </li>

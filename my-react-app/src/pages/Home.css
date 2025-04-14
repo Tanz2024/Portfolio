@@ -1,5 +1,5 @@
 /* ------------------------------------- */
-/* GLOBAL STYLES */
+/* GLOBAL STYLES (Mobile-First) */
 /* ------------------------------------- */
 * {
   margin: 0;
@@ -23,10 +23,11 @@ body {
 /* ------------------------------------- */
 .hero-section {
   display: flex;
+  flex-direction: column; /* Stack on mobile */
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  padding: 3rem 2rem;
+  justify-content: center;
+  padding: 3rem 1.5rem;
   background-color: rgba(255, 255, 255, 0.8);
   border-bottom: 1px solid #e0e0e0;
   position: relative;
@@ -34,21 +35,22 @@ body {
 
 .hero-content {
   flex: 1;
-  max-width: 600px;
-  margin-right: 2rem;
+  max-width: 100%;
+  margin-bottom: 1.5rem;
+  text-align: center;
   opacity: 0;
   transform: translateY(20px);
   transition: opacity 0.8s ease-out, transform 0.8s ease-out;
 }
 
 .hero-content h1 {
-  font-size: 2.4rem;
+  font-size: 2rem;
   margin-bottom: 1rem;
   color: #21243d;
 }
 
 .hero-content p {
-  font-size: 1.1rem;
+  font-size: 1rem;
   margin-bottom: 1.5rem;
   line-height: 1.6;
   color: #666;
@@ -71,7 +73,8 @@ body {
 
 .hero-image {
   max-width: 250px;
-  margin-top: 1rem;
+  width: 100%;
+  margin-bottom: 1.5rem;
   opacity: 0;
   transform: translateY(20px);
   transition: opacity 0.8s ease-out, transform 0.8s ease-out;
@@ -112,12 +115,12 @@ body {
 /* SECTIONS */
 /* ------------------------------------- */
 section {
-  padding: 2rem 2rem;
+  padding: 2rem 1.5rem;
   background-color: #ffffff;
 }
 
 section h2 {
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   margin-bottom: 1.5rem;
   color: #21243d;
 }
@@ -131,7 +134,7 @@ section h2 {
 
 .posts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: 1fr;
   gap: 1.5rem;
 }
 
@@ -140,7 +143,7 @@ section h2 {
   padding: 1.5rem;
   border-radius: 8px;
   border: 1px solid #e0e0e0;
-  position: relative; /* To allow absolute positioning for badge */
+  position: relative; /* For badge positioning */
 }
 
 .post-card h3 {
@@ -172,21 +175,23 @@ section h2 {
 
 .work-card {
   display: flex;
+  flex-direction: column; /* Stack on mobile */
   gap: 1.5rem;
   background: #fafafa;
   padding: 1.5rem;
   border-radius: 8px;
   border: 1px solid #e0e0e0;
-  position: relative; /* To allow absolute positioning for badge */
+  position: relative; /* For badge positioning */
 }
 
 /* Left column (image/pdf preview) */
 .work-card-image-col {
   flex: 1;
-  max-width: 300px;
+  max-width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 1rem;
 }
 
 .work-card-image {
@@ -328,7 +333,7 @@ section h2 {
 
 .modal-content {
   position: relative;
-  width: 80%;
+  width: 90%;
   max-width: 900px;
   max-height: 80vh;
   background: #fff;
@@ -425,7 +430,6 @@ section h2 {
   overflow: hidden;
 }
 
-/* Shimmer effect */
 .skeleton::after {
   content: "";
   position: absolute;
@@ -463,20 +467,16 @@ section h2 {
 /* ------------------------------------- */
 /* NEW BADGE & RECENT ITEM STYLES */
 /* ------------------------------------- */
-/* New badge styled as a corner ribbon with a pulse animation */
-/* Ensure the parent cards allow the badge to extend beyond edges */
 .post-card,
 .work-card {
   position: relative;
-  /* Important: allow the badge to be seen if it extends out */
-  overflow: visible; 
+  overflow: visible; /* Allow badge to extend outside */
 }
 
-/* Updated NEW badge styling */
 .new-badge {
   position: absolute;
-  top: -10px;     /* shift upward so it rests on the corner */
-  right: -40px;   /* shift right so the text is fully visible */
+  top: -10px;      /* Shift upward */
+  right: -40px;    /* Shift right */
   background-color: #d32f2f;
   color: #fff;
   padding: 0.4rem 1rem;
@@ -486,15 +486,77 @@ section h2 {
   transform: rotate(45deg);
   transform-origin: center;
   border-radius: 0;
-  z-index: 9999;  /* ensure the badge sits on top */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); /* optional shadow */
+  z-index: 9999;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
-
-/* Pulse animation for the badge */
 @keyframes pulse {
   0% { transform: scale(1) rotate(45deg) translate(25%, -50%); }
   50% { transform: scale(1.05) rotate(45deg) translate(25%, -50%); }
   100% { transform: scale(1) rotate(45deg) translate(25%, -50%); }
 }
 
+/* ------------------------------------- */
+/* MEDIA QUERIES (Tablets and Larger Screens) */
+/* ------------------------------------- */
+@media (min-width: 768px) {
+
+  /* HERO SECTION: side-by-side layout */
+  .hero-section {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 3rem 2rem;
+  }
+
+  .hero-content {
+    text-align: left;
+    max-width: 600px;
+    margin-right: 2rem;
+  }
+  
+  .hero-image {
+    margin-bottom: 0;
+  }
+
+  /* RECENT POSTS: grid layout with auto-fit columns */
+  .posts-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  /* FEATURED WORKS: horizontal work card */
+  .work-card {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .work-card-image-col {
+    margin-bottom: 0;
+    margin-right: 1.5rem;
+    max-width: 300px;
+  }
+}
+
+/* ------------------------------------- */
+/* MEDIA QUERIES (Very Small Screens) */
+/* ------------------------------------- */
+@media (max-width: 480px) {
+  body {
+    font-size: 0.9rem;
+  }
+
+  .hero-content h1 {
+    font-size: 1.8rem;
+  }
+
+  .hero-content p {
+    font-size: 0.95rem;
+  }
+
+  .resume-button {
+    padding: 0.65rem 1.25rem;
+  }
+
+  section {
+    padding: 2rem 1rem;
+  }
+}
