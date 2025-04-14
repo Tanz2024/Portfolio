@@ -4,13 +4,15 @@
   "description": "React + CSS frontend using Parcel",
   "scripts": {
     "start": "parcel src/index.html --open",
-    "dev": "parcel src/index.html --port 1235",
+    "dev": "parcel src/index.html --port 1234",
     "build": "parcel build src/index.html"
   },
   "keywords": [],
   "author": "Tanzim",
   "license": "MIT",
   "dependencies": {
+    "emailjs-com": "^3.2.0",
+    "firebase": "^11.6.0",
     "i18next": "^24.2.3",
     "i18next-browser-languagedetector": "^8.0.4",
     "react": "^18.2.0",
@@ -27,7 +29,8 @@
   },
   "devDependencies": {
     "buffer": "^6.0.3",
-    "parcel": "^2.14.4"
+    "parcel": "^2.14.4",
+    "stable": "^0.1.8"
   },
   "browserslist": [
     "last 2 Chrome versions",

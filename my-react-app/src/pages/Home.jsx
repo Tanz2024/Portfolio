@@ -103,7 +103,7 @@ const Home = () => {
           const authData = await authRes.json();
           if (authData) {
             if (!sessionStorage.getItem("welcomeShown")) {
-              toast.info("Welcome back! Enjoy exploring my portfolio.", { autoClose: 3000 });
+              toast.info("Welcome to my Portfolio ! Enjoy exploring my portfolio.", { autoClose: 3000 });
               sessionStorage.setItem("welcomeShown", "true");
             }
             if (authData.role_id === 1) setIsAdmin(true);

@@ -1,61 +1,130 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import emailjs from 'emailjs-com';
 import './Contact.css';
 
+// Import Firestore-related functions and DB from your Firebase config
+import { db } from '../firebaseConfig';
+
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+
 const Contact = () => {
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
-  const [status, setStatus] = useState('');
+  // Form state (includes a honeypot field for spam protection)
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    message: '',
+    botField: '',
+  });
+  const [status, setStatus] = useState(''); // 'sending' | 'success' | 'error' | 'invalid-email'
   const [charCount, setCharCount] = useState(0);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const errorRef = useRef(null);
 
-  // Helper function to validate email format
-  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  // Helper function to validate email with a regex
+  const isValidEmail = (email) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
-  const handleChange = e => {
-    const { name, value } = e.target;
-    if (name === 'message') setCharCount(value.length);
-    setFormData({ ...formData, [name]: value });
+  // Field-level validation on blur
+  const validateField = (name, value) => {
+    let error;
+    if (!value || value.trim() === '') {
+      error = `${name.charAt(0).toUpperCase() + name.slice(1)} is required.`;
+    } else if (name === 'email' && !isValidEmail(value)) {
+      error = 'Please enter a valid email address.';
+    }
+    setFieldErrors((prev) => ({ ...prev, [name]: error }));
   };
 
-  const handleSubmit = async e => {
+  // Handle changes in inputs and update the state; update character count for message field
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name === 'message') setCharCount(value.length);
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear error for the field as the user types
+    setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+  };
+
+  // Form submission handler
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Client-side email validation
-    if (!isValidEmail(formData.email)) {
-      setStatus('invalid-email');
+    // Check honeypot field for bot submissions
+    if (formData.botField.trim() !== '') {
+      console.warn('Bot submission blocked.');
+      return;
+    }
+
+    // Validate required fields and collect errors
+    const errors = {};
+    ['name', 'email', 'message'].forEach((field) => {
+      if (!formData[field] || formData[field].trim() === '') {
+        errors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required.`;
+      } else if (field === 'email' && !isValidEmail(formData.email)) {
+        errors.email = 'Please enter a valid email address.';
+      }
+    });
+
+    if (Object.keys(errors).length) {
+      setFieldErrors(errors);
+      setStatus('error');
+      if (errorRef.current) {
+        errorRef.current.focus();
+      }
       return;
     }
 
     setStatus('sending');
 
     try {
-      const res = await fetch('https://portfolio-1-716m.onrender.com/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      const result = await res.json();
+      // Retrieve EmailJS keys from environment variables
+      const serviceID = process.env.REACT_APP_EMAILJS_SERVICE;
+      const templateID = process.env.REACT_APP_EMAILJS_TEMPLATE;
+      const publicKey = process.env.REACT_APP_EMAILJS_USER;
 
-      if (result.success) {
-        setStatus('success');
-        setFormData({ name: '', email: '', message: '' });
-        setCharCount(0);
-      } else {
-        setStatus('error');
-      }
-    } catch (err) {
+      // Send the email via EmailJS
+      await emailjs.send(
+        serviceID,
+        templateID,
+        {
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+        },
+        publicKey
+      );
+
+      // Save submission data to Firestore in the "contacts" collection
+      await addDoc(collection(db, 'contacts'), {
+        name: formData.name,
+        email: formData.email,
+        message: formData.message,
+        createdAt: serverTimestamp(),
+      });
+
+      console.log('SUCCESS! Email sent and data saved to Firestore.');
+      setStatus('success');
+      setFormData({ name: '', email: '', message: '', botField: '' });
+      setCharCount(0);
+      setFieldErrors({});
+    } catch (error) {
+      console.error('Submission failed:', error);
       setStatus('error');
     }
   };
 
-  // Auto-dismiss success, error, or invalid-email messages after 5 seconds
+  // Auto-dismiss notifications after 5 seconds
   useEffect(() => {
-    if (status === 'success' || status === 'error' || status === 'invalid-email') {
+    if (['success', 'error', 'invalid-email'].includes(status)) {
       const timer = setTimeout(() => setStatus(''), 5000);
       return () => clearTimeout(timer);
     }
   }, [status]);
 
-  // Disable submit if any field is empty or if we're sending
-  const isFormIncomplete = !formData.name || !formData.email || !formData.message;
+  const isFormIncomplete =
+    !formData.name ||
+    !formData.email ||
+    !formData.message ||
+    status === 'sending';
 
   return (
     <div className="contact">
@@ -65,61 +134,115 @@ const Contact = () => {
       </header>
 
       <main className="contact-main">
-        <form className="contact-form" onSubmit={handleSubmit}>
+        <form className="contact-form" onSubmit={handleSubmit} noValidate>
+          {/* Name Field */}
           <div className="form-group">
             <label htmlFor="name">Name</label>
             <input
+              autoComplete="name"
               type="text"
               name="name"
               id="name"
               value={formData.name}
               onChange={handleChange}
+              onBlur={(e) => validateField('name', e.target.value)}
               required
               placeholder="Your full name"
+              aria-label="Your full name"
             />
+            {fieldErrors.name && (
+              <span className="field-error" role="alert">
+                {fieldErrors.name}
+              </span>
+            )}
           </div>
 
+          {/* Email Field */}
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
+              autoComplete="email"
               type="email"
               name="email"
               id="email"
               value={formData.email}
               onChange={handleChange}
+              onBlur={(e) => validateField('email', e.target.value)}
               required
               placeholder="you@example.com"
+              aria-label="Your email address"
             />
+            {fieldErrors.email && (
+              <span className="field-error" role="alert">
+                {fieldErrors.email}
+              </span>
+            )}
           </div>
 
+          {/* Message Field */}
           <div className="form-group">
             <label htmlFor="message">Message</label>
             <textarea
+              autoComplete="off"
               name="message"
               id="message"
               value={formData.message}
               onChange={handleChange}
+              onBlur={(e) => validateField('message', e.target.value)}
               rows="5"
               required
               placeholder="Write your message here..."
               maxLength={1000}
+              aria-label="Your message"
             />
-            <div className="char-count">{charCount}/1000</div>
+            <div className="char-count" aria-live="polite">
+              {charCount}/1000
+            </div>
+            {fieldErrors.message && (
+              <span className="field-error" role="alert">
+                {fieldErrors.message}
+              </span>
+            )}
           </div>
 
-          <button type="submit" className="submit-button" disabled={isFormIncomplete || status === 'sending'}>
-            {status === 'sending' ? 'Sending...' : 'Send Message'}
+          {/* Honeypot Field (hidden from users) */}
+          <div style={{ display: 'none' }}>
+            <label htmlFor="botField">Do not fill this field</label>
+            <input
+              type="text"
+              name="botField"
+              id="botField"
+              value={formData.botField}
+              onChange={handleChange}
+            />
+          </div>
+
+          <button type="submit" className="submit-button" disabled={isFormIncomplete}>
+            {status === 'sending' ? (
+              <span className="spinner" aria-label="Loading"></span>
+            ) : (
+              'Send Message'
+            )}
           </button>
 
-          {status === 'success' && (
-            <p className="form-success" role="alert">✅ Message sent successfully!</p>
-          )}
-          {status === 'error' && (
-            <p className="form-error" role="alert">❌ Something went wrong. Please try again.</p>
-          )}
-          {status === 'invalid-email' && (
-            <p className="form-error" role="alert">❌ Please enter a valid email address.</p>
-          )}
+          {/* Status and error messages */}
+          <div
+            className="form-messages"
+            role="alert"
+            tabIndex="-1"
+            ref={errorRef}
+            aria-live="assertive"
+          >
+            {status === 'success' && (
+              <p className="form-success">✅ Message sent successfully!</p>
+            )}
+            {status === 'error' && (
+              <p className="form-error">❌ Something went wrong. Please try again.</p>
+            )}
+            {status === 'invalid-email' && (
+              <p className="form-error">❌ Please enter a valid email address.</p>
+            )}
+          </div>
         </form>
       </main>
     </div>
