@@ -76,3 +76,4 @@ node_modules/
 build/
 dist/
 * text=auto
+.env
