@@ -34,7 +34,7 @@ const Work = () => {
   // Fetch projects from backend
   useEffect(() => {
     setLoadingProjects(true);
-    fetch('http://localhost:5000/api/projects')
+    fetch('https://portfolio-1-716m.onrender.com/api/projects')
       .then(res => res.json())
       .then(data => {
         setProjects(data);
@@ -49,7 +49,7 @@ const Work = () => {
 
   // Check admin authentication
   useEffect(() => {
-    fetch('http://localhost:5000/authenticate', { credentials: 'include' })
+    fetch('https://portfolio-1-716m.onrender.com/authenticate', { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         if (data.role_id === 1) {
@@ -128,7 +128,7 @@ const Work = () => {
       formData.append('description', newProject.description);
       selectedFiles.forEach(file => formData.append('screenshots', file));
 
-      const response = await fetch('http://localhost:5000/api/projects', {
+      const response = await fetch('https://portfolio-1-716m.onrender.com/api/projects', {
         method: 'POST',
         credentials: 'include',
         body: formData,
@@ -154,7 +154,7 @@ const Work = () => {
   const handleDeleteProject = async (id) => {
     if (!window.confirm('Are you sure you want to delete this project?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/projects/${id}`, {
+      const res = await fetch(`https://portfolio-1-716m.onrender.com/api/projects/${id}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -184,7 +184,7 @@ const Work = () => {
     e.preventDefault();
     if (!window.confirm("Save changes?")) return;
     try {
-      const response = await fetch(`http://localhost:5000/api/projects/${editProjectId}`, {
+      const response = await fetch(`https://portfolio-1-716m.onrender.com/api/projects/${editProjectId}`, {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -301,13 +301,13 @@ const Work = () => {
                       className="project-image"
                       src={
                         project.image_url.startsWith('/uploads')
-                          ? `http://localhost:5000${project.image_url}`
+                          ? `https://portfolio-1-716m.onrender.com${project.image_url}`
                           : project.image_url
                       }
                       alt={project.title}
                       onClick={() =>
                         openModal([{ url: project.image_url.startsWith('/uploads')
-                          ? `http://localhost:5000${project.image_url}`
+                          ? `https://portfolio-1-716m.onrender.com${project.image_url}`
                           : project.image_url, isPdf: false }])
                       }
                     />
@@ -318,7 +318,7 @@ const Work = () => {
                       {JSON.parse(project.screenshots).map((fileUrl, index) => {
                         const isPdf = fileUrl.toLowerCase().endsWith('.pdf');
                         const item = {
-                          url: `http://localhost:5000${fileUrl}`,
+                          url: `https://portfolio-1-716m.onrender.com${fileUrl}`,
                           isPdf
                         };
                         return (
@@ -331,7 +331,7 @@ const Work = () => {
                                 height="250px"
                                 style={{ border: 'none' }}
                                 onClick={() => openModal(JSON.parse(project.screenshots).map(url => ({
-                                  url: `http://localhost:5000${url}`,
+                                  url: `https://portfolio-1-716m.onrender.com${url}`,
                                   isPdf: url.toLowerCase().endsWith('.pdf')
                                 })), index)}
                               ></iframe>
@@ -341,7 +341,7 @@ const Work = () => {
                                 src={item.url}
                                 alt={`${project.title} file ${index + 1}`}
                                 onClick={() => openModal(JSON.parse(project.screenshots).map(url => ({
-                                  url: `http://localhost:5000${url}`,
+                                  url: `https://portfolio-1-716m.onrender.com${url}`,
                                   isPdf: url.toLowerCase().endsWith('.pdf')
                                 })), index)}
                               />

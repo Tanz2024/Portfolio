@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
   const isAuthenticated = role === "admin" || role === "viewer";
   const checkAuth = async () => {
     try {
-      const res = await fetch("http://localhost:5000/authenticate", {
+      const res = await fetch("https://portfolio-1-716m.onrender.com/authenticate", {
         credentials: "include",
       });
   

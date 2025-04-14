@@ -1,6 +1,6 @@
-/* ----------------------------- */
+/* ------------------------------------- */
 /* Base Mobile-First Styling */
-/* ----------------------------- */
+/* ------------------------------------- */
 .navbar {
   background-color: #fff;           /* White background */
   padding: 0.5rem 1rem;
@@ -31,8 +31,7 @@
   cursor: pointer;
   align-self: flex-end;
   margin-bottom: 1rem;
-  /* Ensure a minimum touch-target size */
-  padding: 0.5rem;
+  padding: 0.5rem; /* Minimum touch target size */
 }
 
 /* Nav menu container */
@@ -79,7 +78,7 @@
   color: #fff;
 }
 
-/* Logout button inherits the same styling */
+/* Logout button styling: inherit from nav-link */
 .logout-btn {
   background: none;
   border: none;
@@ -90,14 +89,13 @@
   text-align: left;
 }
 
-/* Hover state for logout button */
 .logout-btn:hover {
   text-decoration: underline;
 }
 
-/* ----------------------------- */
+/* ------------------------------------- */
 /* Tablet & Desktop Styles */
-/* ----------------------------- */
+/* ------------------------------------- */
 @media (min-width: 768px) {
   .nav-container {
     flex-direction: row;           /* Horizontal layout */
@@ -105,7 +103,7 @@
   }
   
   .nav-logo {
-    margin-bottom: 0;              /* Remove spacing for horizontal layout */
+    margin-bottom: 0;              /* Remove vertical spacing */
   }
   
   .nav-toggle {
@@ -113,7 +111,7 @@
   }
   
   .nav-menu {
-    display: flex !important;     /* Always show menu horizontally */
+    display: flex !important;     /* Always visible horizontally */
     flex-direction: row;
     margin: 0;
     width: auto;
@@ -130,9 +128,9 @@
   }
 }
 
-/* ----------------------------- */
+/* ------------------------------------- */
 /* Small Phones Adjustments */
-/* ----------------------------- */
+/* ------------------------------------- */
 @media (max-width: 480px) {
   .navbar {
     padding: 0.5rem;

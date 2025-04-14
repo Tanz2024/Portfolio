@@ -22,7 +22,7 @@ const Blogs = () => {
 
   // Check admin authentication via the backend
   useEffect(() => {
-    fetch("http://localhost:5000/authenticate", { credentials: "include" })
+    fetch("https://portfolio-1-716m.onrender.com/authenticate", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
         if (data.role_id === 1) {
@@ -34,7 +34,7 @@ const Blogs = () => {
 
   // Fetch published blogs from the public endpoint
   useEffect(() => {
-    fetch("http://localhost:5000/api/blogs")
+    fetch("https://portfolio-1-716m.onrender.com/api/blogs")
       .then((res) => res.json())
       .then((data) => {
         setBlogs(data);
@@ -82,7 +82,7 @@ const Blogs = () => {
     if (videoFile) formData.append("video", videoFile);
 
     try {
-      const res = await fetch("http://localhost:5000/api/blogs", {
+      const res = await fetch("https://portfolio-1-716m.onrender.com/api/blogs", {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -114,7 +114,7 @@ const Blogs = () => {
       return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/blogs/${id}`, {
+      const res = await fetch(`https://portfolio-1-716m.onrender.com/api/blogs/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -248,14 +248,14 @@ const Blogs = () => {
                     <div className="blog-post-media">
                       {blog.image_url && !blog.image_url.endsWith(".pdf") && (
                         <img
-                          src={`http://localhost:5000${blog.image_url}`}
+                          src={`https://portfolio-1-716m.onrender.com${blog.image_url}`}
                           alt="Blog Visual"
                           className="blog-image"
                         />
                       )}
                       {blog.image_url && blog.image_url.endsWith(".pdf") && (
                         <iframe
-                          src={`http://localhost:5000${blog.image_url}`}
+                          src={`https://portfolio-1-716m.onrender.com${blog.image_url}`}
                           width="100%"
                           height="600px"
                           style={{ border: "none" }}
@@ -267,7 +267,7 @@ const Blogs = () => {
                       {blog.video_url && (
                         <video controls className="blog-video">
                           <source
-                            src={`http://localhost:5000${blog.video_url}`}
+                            src={`https://portfolio-1-716m.onrender.com${blog.video_url}`}
                             type="video/mp4"
                           />
                           Your browser does not support video playback.
@@ -323,14 +323,14 @@ const Blogs = () => {
                     <div className="blog-post-media">
                       {blog.image_url && !blog.image_url.endsWith(".pdf") && (
                         <img
-                          src={`http://localhost:5000${blog.image_url}`}
+                          src={`https://portfolio-1-716m.onrender.com${blog.image_url}`}
                           alt="Blog Visual"
                           className="blog-image"
                         />
                       )}
                       {blog.image_url && blog.image_url.endsWith(".pdf") && (
                         <iframe
-                          src={`http://localhost:5000${blog.image_url}`}
+                          src={`https://portfolio-1-716m.onrender.com${blog.image_url}`}
                           width="100%"
                           height="600px"
                           style={{ border: "none" }}
@@ -342,7 +342,7 @@ const Blogs = () => {
                       {blog.video_url && (
                         <video controls className="blog-video">
                           <source
-                            src={`http://localhost:5000${blog.video_url}`}
+                            src={`https://portfolio-1-716m.onrender.com${blog.video_url}`}
                             type="video/mp4"
                           />
                           Your browser does not support video playback.

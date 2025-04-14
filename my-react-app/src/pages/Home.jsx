@@ -14,7 +14,7 @@ const Home = () => {
   const recentPostsRef = useRef(null);
 
   // -----------------------------
-  // State: Fetched Data & Loading
+  // State: Data & Loading
   // -----------------------------
   const [blogs, setBlogs] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -23,7 +23,7 @@ const Home = () => {
   const [loadingProjects, setLoadingProjects] = useState(true);
 
   // -----------------------------
-  // State: Authentication / Admin Role
+  // State: Admin Role
   // -----------------------------
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -43,7 +43,7 @@ const Home = () => {
   const [testimonialRating, setTestimonialRating] = useState(5);
 
   // -----------------------------
-  // State: Dynamic Profile Image & Bio Data
+  // State: Profile Image & Bio Data
   // -----------------------------
   const [profileImageURL, setProfileImageURL] = useState("");
   const [showProfileImageForm, setShowProfileImageForm] = useState(false);
@@ -51,7 +51,6 @@ const Home = () => {
   const [profileImageUploadMessage, setProfileImageUploadMessage] = useState("");
   const [profileImageUploadError, setProfileImageUploadError] = useState("");
 
-  // Editable bio info (name and description)
   const [bioData, setBioData] = useState({ name: "", description: "" });
   const [editingBio, setEditingBio] = useState(false);
   const [bioMessage, setBioMessage] = useState("");
@@ -64,13 +63,12 @@ const Home = () => {
   const [zoom, setZoom] = useState(1);
 
   // -----------------------------
-  // Helper: Check if item is recent (< 1 day old)
+  // Helper: Check if item is recent (< 1 day)
   // -----------------------------
   const isRecent = (dateString) => {
     const itemDate = new Date(dateString);
     const now = new Date();
-    const diffInMs = now - itemDate;
-    return diffInMs < 24 * 60 * 60 * 1000; // less than one day
+    return now - itemDate < 24 * 60 * 60 * 1000; // less than one day
   };
 
   // -----------------------------
@@ -80,27 +78,27 @@ const Home = () => {
     const fetchData = async () => {
       try {
         // Fetch Blogs
-        const blogsRes = await fetch("http://localhost:5000/api/blogs");
+        const blogsRes = await fetch("https://portfolio-1-716m.onrender.com/api/blogs");
         if (blogsRes.ok) {
           setBlogs(await blogsRes.json());
         }
         setLoadingBlogs(false);
 
         // Fetch Projects
-        const projectsRes = await fetch("http://localhost:5000/api/projects");
+        const projectsRes = await fetch("https://portfolio-1-716m.onrender.com/api/projects");
         if (projectsRes.ok) {
           setProjects(await projectsRes.json());
         }
         setLoadingProjects(false);
 
         // Fetch Testimonials
-        const testimonialsRes = await fetch("http://localhost:5000/api/testimonials");
+        const testimonialsRes = await fetch("https://portfolio-1-716m.onrender.com/api/testimonials");
         if (testimonialsRes.ok) {
           setTestimonials(await testimonialsRes.json());
         }
 
-        // Authenticate User (to know if current viewer is admin)
-        const authRes = await fetch("http://localhost:5000/authenticate", { credentials: "include" });
+        // Authenticate User
+        const authRes = await fetch("https://portfolio-1-716m.onrender.com/authenticate", { credentials: "include" });
         if (authRes.ok) {
           const authData = await authRes.json();
           if (authData) {
@@ -113,19 +111,18 @@ const Home = () => {
         }
 
         // Fetch Profile Image
-        const profileRes = await fetch("http://localhost:5000/api/public/profile-image");
+        const profileRes = await fetch("https://portfolio-1-716m.onrender.com/api/public/profile-image");
         if (profileRes.ok) {
           const data = await profileRes.json();
           if (data.profileImageURL) {
-            setProfileImageURL("http://localhost:5000" + data.profileImageURL);
+            setProfileImageURL("https://portfolio-1-716m.onrender.com" + data.profileImageURL);
           }
         }
         
-        // Fetch Bio Data from public endpoint so all users see the updated info
-        const bioRes = await fetch("http://localhost:5000/api/public/profile");
+        // Fetch Bio Data
+        const bioRes = await fetch("https://portfolio-1-716m.onrender.com/api/public/profile");
         if (bioRes.ok) {
           const bioInfo = await bioRes.json();
-          // Map backend field "bio" to "description" for your state
           setBioData({ name: bioInfo.name, description: bioInfo.bio });
         }
       } catch (err) {
@@ -136,7 +133,7 @@ const Home = () => {
   }, []);
 
   // -----------------------------
-  // Handle Esc Key (Close Modal & Reset Zoom)
+  // Close Modal on Esc key
   // -----------------------------
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -153,21 +150,16 @@ const Home = () => {
   // Scroll to "Recent Posts"
   // -----------------------------
   const scrollToRecentPosts = () => {
-    if (recentPostsRef.current) {
-      recentPostsRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    recentPostsRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   // -----------------------------
-  // Resume Download
+  // Resume Handlers
   // -----------------------------
   const handleResumeDownload = () => {
-    window.open("http://localhost:5000/api/resume/download", "_blank");
+    window.open("https://portfolio-1-716m.onrender.com/api/resume/download", "_blank");
   };
 
-  // -----------------------------
-  // Toggle Resume Upload Form
-  // -----------------------------
   const toggleUploadForm = () => {
     setShowUploadForm((prev) => !prev);
     setUploadMessage("");
@@ -175,16 +167,10 @@ const Home = () => {
     setResumeFile(null);
   };
 
-  // -----------------------------
-  // Handle Resume File Change
-  // -----------------------------
   const handleResumeChange = (e) => {
     setResumeFile(e.target.files[0]);
   };
 
-  // -----------------------------
-  // Upload Resume to Backend
-  // -----------------------------
   const handleUpload = async () => {
     if (!resumeFile) {
       setUploadError("Please select a resume file to upload.");
@@ -193,7 +179,7 @@ const Home = () => {
     try {
       const formData = new FormData();
       formData.append("resume", resumeFile);
-      const res = await fetch("http://localhost:5000/api/resume", {
+      const res = await fetch("https://portfolio-1-716m.onrender.com/api/resume", {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -216,7 +202,7 @@ const Home = () => {
   };
 
   // -----------------------------
-  // Toggle Profile Image Upload Form
+  // Profile Image Handlers
   // -----------------------------
   const toggleProfileImageForm = () => {
     setShowProfileImageForm((prev) => !prev);
@@ -225,9 +211,6 @@ const Home = () => {
     setProfileImageFile(null);
   };
 
-  // -----------------------------
-  // Upload Profile Image
-  // -----------------------------
   const handleProfileImageUpload = async () => {
     if (!profileImageFile) {
       setProfileImageUploadError("Please select a profile image file to upload.");
@@ -236,7 +219,7 @@ const Home = () => {
     try {
       const formData = new FormData();
       formData.append("profileImage", profileImageFile);
-      const res = await fetch("http://localhost:5000/api/profile-image", {
+      const res = await fetch("https://portfolio-1-716m.onrender.com/api/profile-image", {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -245,7 +228,7 @@ const Home = () => {
         const data = await res.json();
         setProfileImageUploadMessage(data.message || "Profile image updated successfully!");
         setProfileImageUploadError("");
-        setProfileImageURL("http://localhost:5000" + data.profileImageURL);
+        setProfileImageURL("https://portfolio-1-716m.onrender.com" + data.profileImageURL);
         toast.success("Profile image updated!");
       } else {
         const errData = await res.json();
@@ -260,7 +243,7 @@ const Home = () => {
   };
 
   // -----------------------------
-  // Editable Bio Handlers (only admin can edit)
+  // Editable Bio Handlers (Admin Only)
   // -----------------------------
   const toggleEditBio = () => {
     setEditingBio((prev) => !prev);
@@ -276,8 +259,7 @@ const Home = () => {
   const handleBioSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Only admin (authenticated via token) can submit the update.
-      const res = await fetch("http://localhost:5000/api/user/profile", {
+      const res = await fetch("https://portfolio-1-716m.onrender.com/api/user/profile", {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -302,43 +284,63 @@ const Home = () => {
   };
 
   // -----------------------------
-  // Delete Testimonial (Admin)
+  // Testimonial & Project Handlers
   // -----------------------------
+  const handleTestimonialSubmit = async (e) => {
+    e.preventDefault();
+    const newTestimonial = {
+      name: testimonialName,
+      comment: testimonialComment,
+      rating: testimonialRating,
+    };
+    try {
+      const res = await fetch("https://portfolio-1-716m.onrender.com/api/testimonials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newTestimonial),
+      });
+      if (res.ok) {
+        const createdTestimonial = await res.json();
+        setTestimonials((prev) => [createdTestimonial, ...prev]);
+        setTestimonialName("");
+        setTestimonialComment("");
+        setTestimonialRating(5);
+        toast.success("Testimonial submitted!");
+      } else {
+        toast.error("Error submitting testimonial.");
+      }
+    } catch (err) {
+      console.error("Error submitting testimonial:", err);
+      toast.error("Error submitting testimonial.");
+    }
+  };
+
   const handleDeleteTestimonial = async (testimonialId) => {
     if (!window.confirm("Are you sure you want to delete this testimonial?")) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/testimonials/${testimonialId}`, {
+      const res = await fetch(`https://portfolio-1-716m.onrender.com/api/testimonials/${testimonialId}`, {
         method: "DELETE",
         credentials: "include",
       });
       if (res.ok) {
         setTestimonials((prev) => prev.filter((t) => t.id !== testimonialId));
         toast.success("Testimonial deleted.");
-      } else {
-        const errData = await res.json();
-        console.error("Delete testimonial error:", errData.error);
       }
     } catch (err) {
       console.error("Error deleting testimonial:", err);
     }
   };
 
-  // -----------------------------
-  // Delete Project (Admin)
-  // -----------------------------
   const handleDeleteProject = async (projectId) => {
     if (!window.confirm("Are you sure you want to delete this project?")) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/projects/${projectId}`, {
+      const res = await fetch(`https://portfolio-1-716m.onrender.com/api/projects/${projectId}`, {
         method: "DELETE",
         credentials: "include",
       });
       if (res.ok) {
         setProjects((prev) => prev.filter((p) => p.id !== projectId));
         toast.success("Project deleted.");
-      } else {
-        const errData = await res.json();
-        console.error("Delete project error:", errData.error);
       }
     } catch (err) {
       console.error("Error deleting project:", err);
@@ -366,54 +368,18 @@ const Home = () => {
   }, []);
 
   // -----------------------------
-  // Submit Testimonial
-  // -----------------------------
-  const handleTestimonialSubmit = async (e) => {
-    e.preventDefault();
-    const newTestimonial = {
-      name: testimonialName,
-      comment: testimonialComment,
-      rating: testimonialRating,
-    };
-    try {
-      const res = await fetch("http://localhost:5000/api/testimonials", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newTestimonial),
-      });
-      if (res.ok) {
-        const createdTestimonial = await res.json();
-        setTestimonials((prev) => [createdTestimonial, ...prev]);
-        setTestimonialName("");
-        setTestimonialComment("");
-        setTestimonialRating(5);
-        toast.success("Testimonial submitted!");
-      } else {
-        console.warn("Error creating testimonial:", res.status);
-        toast.error("Error submitting testimonial.");
-      }
-    } catch (err) {
-      console.warn("Error submitting testimonial:", err);
-      toast.error("Error submitting testimonial.");
-    }
-  };
-
-  // -----------------------------
-  // Render Star Rating
+  // Star Rating Renderer
   // -----------------------------
   const renderStars = (rating) => (
     <span className="star-display">
       {[1, 2, 3, 4, 5].map((star) => (
-        <span 
-          key={star} 
-          style={{ color: rating >= star ? "gold" : "gray" }}
-        >
+        <span key={star} style={{ color: rating >= star ? "gold" : "gray" }}>
           {rating >= star ? "★" : "☆"}
         </span>
       ))}
     </span>
   );
-  
+
   // -----------------------------
   // Slider Settings for Blogs Carousel
   // -----------------------------
@@ -440,19 +406,17 @@ const Home = () => {
   };
 
   // -----------------------------
-  // Render a Screenshot (Image/PDF) with Click-to-Preview
+  // Render a Screenshot with Click-to-Preview
   // -----------------------------
   const renderScreenshot = (fileUrl, index) => {
-    const fullUrl = `http://localhost:5000${fileUrl}`;
+    const fullUrl = `https://portfolio-1-716m.onrender.com${fileUrl}`;
     const isPdf = fileUrl.toLowerCase().endsWith(".pdf");
     return (
-      <div key={index} className="file-preview" style={{ flex: "1 0 auto" }}>
+      <div key={index} className="file-preview">
         {isPdf ? (
           <iframe
             src={fullUrl}
             title={`PDF-${index}`}
-            width="100%"
-            height="250px"
             className="pdf-frame"
             style={{ cursor: "pointer" }}
             onClick={() => {
@@ -466,9 +430,7 @@ const Home = () => {
             alt={`Screenshot ${index + 1}`}
             className="project-image"
             style={{ cursor: "pointer" }}
-            onClick={() => {
-              setModalItem({ url: fullUrl, isPdf: false });
-            }}
+            onClick={() => setModalItem({ url: fullUrl, isPdf: false })}
           />
         )}
       </div>
@@ -484,10 +446,22 @@ const Home = () => {
 
       {/* HERO SECTION */}
       <header className="hero-section">
+        {/* HERO IMAGE (Picture on Top) */}
+        <div className="hero-image animate-on-scroll">
+          {profileImageURL && (
+            <img
+              src={profileImageURL}
+              alt="Profile of Tanzim Bin Zahir"
+              loading="lazy"
+            />
+          )}
+        </div>
+
+        {/* HERO CONTENT (Text, Bio, Buttons, Forms) */}
         <div className="hero-content animate-on-scroll">
           {editingBio ? (
             <form onSubmit={handleBioSubmit} className="bio-edit-form">
-              <input 
+              <input
                 type="text"
                 name="name"
                 value={bioData.name}
@@ -495,17 +469,25 @@ const Home = () => {
                 placeholder="Your Name"
                 required
               />
-              <textarea 
+              <textarea
                 name="description"
                 value={bioData.description}
                 onChange={handleBioChange}
                 placeholder="Describe yourself and your work..."
                 required
               ></textarea>
-              <button type="submit" className="resume-button">Save Bio</button>
-              <button type="button" className="resume-button" onClick={toggleEditBio} style={{ backgroundColor: "#ccc" }}>Cancel</button>
-              {bioMessage && <p style={{ color: "green" }}>{bioMessage}</p>}
-              {bioError && <p style={{ color: "red" }}>{bioError}</p>}
+              <button type="submit" className="resume-button">
+                Save Bio
+              </button>
+              <button
+                type="button"
+                className="resume-button cancel-button"
+                onClick={toggleEditBio}
+              >
+                Cancel
+              </button>
+              {bioMessage && <p className="success-msg">{bioMessage}</p>}
+              {bioError && <p className="error-msg">{bioError}</p>}
             </form>
           ) : (
             <>
@@ -514,7 +496,6 @@ const Home = () => {
                 {bioData.description ||
                   "I help brands stand out with modern digital experiences. My work is focused on building visually engaging, user-friendly solutions."}
               </p>
-              {/* Only admin can see the Edit button */}
               {isAdmin && (
                 <button className="resume-button" onClick={toggleEditBio}>
                   Edit Bio
@@ -522,7 +503,8 @@ const Home = () => {
               )}
             </>
           )}
-          <div className="resume-buttons" style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+
+          <div className="resume-buttons">
             <button className="resume-button" onClick={handleResumeDownload}>
               Download Resume
             </button>
@@ -531,56 +513,88 @@ const Home = () => {
                 <button className="resume-button" onClick={toggleUploadForm}>
                   Upload Resume
                 </button>
-                <button className="profile-image-button" onClick={toggleProfileImageForm}>
+                <button
+                  className="profile-image-button"
+                  onClick={toggleProfileImageForm}
+                >
                   Change Profile Image
                 </button>
               </>
             )}
           </div>
-          {/* Admin Resume Upload Form */}
+
           {isAdmin && showUploadForm && (
-            <div className="upload-form" style={{ marginTop: "1rem" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <label htmlFor="resume-file" style={{ marginRight: "0.5rem" }}>Resume (PDF):</label>
-                  <input type="file" id="resume-file" accept=".pdf" onChange={handleResumeChange} />
+            <div className="upload-form">
+              <div className="form-content">
+                <div className="form-row">
+                  <label htmlFor="resume-file">Resume (PDF):</label>
+                  <input
+                    type="file"
+                    id="resume-file"
+                    accept=".pdf"
+                    onChange={handleResumeChange}
+                  />
                 </div>
-                <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem" }}>
-                  <button className="resume-button" onClick={handleUpload}>Confirm Upload</button>
-                  <button className="resume-button" style={{ backgroundColor: "#ccc" }} onClick={toggleUploadForm}>Cancel</button>
+                <div className="form-actions">
+                  <button className="resume-button" onClick={handleUpload}>
+                    Confirm Upload
+                  </button>
+                  <button
+                    className="resume-button cancel-button"
+                    onClick={toggleUploadForm}
+                  >
+                    Cancel
+                  </button>
                 </div>
-                {uploadMessage && <p style={{ color: "green", marginTop: "0.5rem" }}>{uploadMessage}</p>}
-                {uploadError && <p style={{ color: "red", marginTop: "0.5rem" }}>{uploadError}</p>}
+                {uploadMessage && <p className="success-msg">{uploadMessage}</p>}
+                {uploadError && <p className="error-msg">{uploadError}</p>}
               </div>
             </div>
           )}
-          {/* Admin Profile Image Upload Form */}
+
           {isAdmin && showProfileImageForm && (
-            <div className="upload-form profile-image-form" style={{ marginTop: "1rem" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <label htmlFor="profile-image-file" style={{ marginRight: "0.5rem" }}>Profile Image (JPG/PNG):</label>
-                  <input type="file" id="profile-image-file" accept="image/*" onChange={(e) => setProfileImageFile(e.target.files[0])} />
+            <div className="upload-form profile-image-form">
+              <div className="form-content">
+                <div className="form-row">
+                  <label htmlFor="profile-image-file">
+                    Profile Image (JPG/PNG):
+                  </label>
+                  <input
+                    type="file"
+                    id="profile-image-file"
+                    accept="image/*"
+                    onChange={(e) =>
+                      setProfileImageFile(e.target.files[0])
+                    }
+                  />
                 </div>
-                <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem" }}>
-                  <button className="profile-image-button" onClick={handleProfileImageUpload}>Upload Image</button>
-                  <button className="profile-image-button" style={{ backgroundColor: "#ccc" }} onClick={toggleProfileImageForm}>Cancel</button>
+                <div className="form-actions">
+                  <button
+                    className="profile-image-button"
+                    onClick={handleProfileImageUpload}
+                  >
+                    Upload Image
+                  </button>
+                  <button
+                    className="profile-image-button cancel-button"
+                    onClick={toggleProfileImageForm}
+                  >
+                    Cancel
+                  </button>
                 </div>
-                {profileImageUploadMessage && <p style={{ color: "green", marginTop: "0.5rem" }}>{profileImageUploadMessage}</p>}
-                {profileImageUploadError && <p style={{ color: "red", marginTop: "0.5rem" }}>{profileImageUploadError}</p>}
+                {profileImageUploadMessage && (
+                  <p className="success-msg">{profileImageUploadMessage}</p>
+                )}
+                {profileImageUploadError && (
+                  <p className="error-msg">{profileImageUploadError}</p>
+                )}
               </div>
             </div>
-          )}
-        </div>
-        {/* HERO IMAGE */}
-        <div className="hero-image animate-on-scroll">
-          {profileImageURL && (
-            <img src={profileImageURL} alt="Profile of Tanzim Bin Zahir" loading="lazy" />
           )}
         </div>
       </header>
 
-      {/* RECENT POSTS SECTION with Carousel */}
+      {/* RECENT POSTS SECTION */}
       <section className="recent-posts animate-on-scroll" ref={recentPostsRef}>
         <h2>Recent Posts</h2>
         {loadingBlogs ? (
@@ -589,28 +603,36 @@ const Home = () => {
             <div className="skeleton skeleton-post"></div>
             <div className="skeleton skeleton-post"></div>
           </div>
-        ) : (
-          blogs.length > 0 ? (
-            <Slider {...sliderSettings}>
-              {blogs.map((blog, index) => (
-                <div key={blog.id} className={`post-card ${isRecent(blog.date) ? "latest-post" : ""}`}>
-                  {isRecent(blog.date) && <span className="new-badge">New</span>}
-                  <h3>{blog.title}</h3>
-                  <div className="post-meta">
-                    <span>{new Date(blog.date).toLocaleDateString()}</span>
-                    <span>|</span>
-                    <span>{blog.category}</span>
-                  </div>
-                  <p>{blog.summary}</p>
+        ) : blogs.length > 0 ? (
+          <Slider {...sliderSettings}>
+            {blogs.map((blog) => (
+              <div
+                key={blog.id}
+                className={`post-card ${
+                  isRecent(blog.date) ? "latest-post" : ""
+                }`}
+              >
+                {isRecent(blog.date) && <span className="new-badge">New</span>}
+                <h3>{blog.title}</h3>
+                <div className="post-meta">
+                  <span>{new Date(blog.date).toLocaleDateString()}</span>
+                  <span>|</span>
+                  <span>{blog.category}</span>
                 </div>
-              ))}
-            </Slider>
-          ) : (
-            <p>No recent posts available.</p>
-          )
+                <p>{blog.summary}</p>
+              </div>
+            ))}
+          </Slider>
+        ) : (
+          <p>No recent posts available.</p>
         )}
-        <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
-          <button className="resume-button" onClick={() => navigate("/blogs")}>View All Blogs</button>
+        <div className="centered-button">
+          <button
+            className="resume-button"
+            onClick={() => navigate("/blogs")}
+          >
+            View All Blogs
+          </button>
         </div>
       </section>
 
@@ -622,71 +644,97 @@ const Home = () => {
             <div className="skeleton skeleton-project"></div>
             <div className="skeleton skeleton-project"></div>
           </div>
-        ) : (
-          projects.length > 0 ? (
-            <div className="works-grid">
-              {projects.slice(0, 3).map((project, index) => {
-                let screenshots = [];
-                try {
-                  screenshots = project.screenshots ? JSON.parse(project.screenshots) : [];
-                } catch (e) {
-                  console.warn("Invalid screenshots JSON for project", project.id, e);
-                }
-                return (
-                  <article key={project.id} className={`work-card ${project.date && isRecent(project.date) ? "latest-project" : ""}`}>
-                    {project.date && isRecent(project.date) && <span className="new-badge">New</span>}
-                    <div className="screenshots-row" style={{ display: "flex", gap: "0.5rem" }}>
-                      {screenshots.length > 0 &&
-                        screenshots.map((screenshot, index) => {
-                          const fullUrl = `http://localhost:5000${screenshot}`;
-                          const isPdf = screenshot.toLowerCase().endsWith(".pdf");
-                          return (
-                            <div key={index} className="file-preview">
-                              {isPdf ? (
-                                <iframe
-                                  src={fullUrl}
-                                  title={`PDF-${index}`}
-                                  className="pdf-frame"
-                                  style={{ cursor: "pointer" }}
-                                  onClick={() => setModalItem({ url: fullUrl, isPdf: true })}
-                                />
-                              ) : (
-                                <img
-                                  src={fullUrl}
-                                  alt={`Screenshot ${index + 1}`}
-                                  className="project-image"
-                                  style={{ cursor: "pointer" }}
-                                  onClick={() => setModalItem({ url: fullUrl, isPdf: false })}
-                                />
-                              )}
-                            </div>
-                          );
-                        })
-                      }
-                    </div>
-                    <div className="work-info">
-                      <h3 className="work-title">{project.title}</h3>
-                      <div className="work-meta">
-                        {project.year && <span className="work-year">{project.year}</span>}
-                        {project.category && <span className="work-category">{project.category}</span>}
-                      </div>
-                      <p className="work-description">{project.description}</p>
-                      {isAdmin && (
-                        <button className="btn delete-btn" onClick={() => handleDeleteProject(project.id)}>
-                          Delete Project
-                        </button>
+        ) : projects.length > 0 ? (
+          <div className="works-grid">
+            {projects.slice(0, 3).map((project) => {
+              let screenshots = [];
+              try {
+                screenshots = project.screenshots
+                  ? JSON.parse(project.screenshots)
+                  : [];
+              } catch (e) {
+                console.warn(
+                  "Invalid screenshots JSON for project",
+                  project.id,
+                  e
+                );
+              }
+              return (
+                <article
+                  key={project.id}
+                  className={`work-card ${
+                    project.date && isRecent(project.date) ? "latest-project" : ""
+                  }`}
+                >
+                  {project.date && isRecent(project.date) && (
+                    <span className="new-badge">New</span>
+                  )}
+                  <div className="screenshots-row">
+                    {screenshots.length > 0 &&
+                      screenshots.map((screenshot, idx) => (
+                        <div key={idx} className="file-preview">
+                          {screenshot.toLowerCase().endsWith(".pdf") ? (
+                            <iframe
+                              src={`https://portfolio-1-716m.onrender.com${screenshot}`}
+                              title={`PDF-${idx}`}
+                              className="pdf-frame"
+                              style={{ cursor: "pointer" }}
+                              onClick={() => {
+                                setModalItem({
+                                  url: `https://portfolio-1-716m.onrender.com${screenshot}`,
+                                  isPdf: true,
+                                });
+                                setZoom(1);
+                              }}
+                            />
+                          ) : (
+                            <img
+                              src={`https://portfolio-1-716m.onrender.com${screenshot}`}
+                              alt={`Screenshot ${idx + 1}`}
+                              className="project-image"
+                              style={{ cursor: "pointer" }}
+                              onClick={() =>
+                                setModalItem({
+                                  url: `https://portfolio-1-716m.onrender.com${screenshot}`,
+                                  isPdf: false,
+                                })
+                              }
+                            />
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                  <div className="work-info">
+                    <h3 className="work-title">{project.title}</h3>
+                    <div className="work-meta">
+                      {project.year && (
+                        <span className="work-year">{project.year}</span>
+                      )}
+                      {project.category && (
+                        <span className="work-category">{project.category}</span>
                       )}
                     </div>
-                  </article>
-                );
-              })}
-            </div>
-          ) : (
-            <p>No featured works available.</p>
-          )
+                    <p className="work-description">{project.description}</p>
+                    {isAdmin && (
+                      <button
+                        className="btn delete-btn"
+                        onClick={() => handleDeleteProject(project.id)}
+                      >
+                        Delete Project
+                      </button>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <p>No featured works available.</p>
         )}
-        <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
-          <button className="resume-button" onClick={() => navigate("/work")}>View All Projects</button>
+        <div className="centered-button">
+          <button className="resume-button" onClick={() => navigate("/work")}>
+            View All Projects
+          </button>
         </div>
       </section>
 
@@ -701,7 +749,10 @@ const Home = () => {
                 <footer>
                   - {t.name} {t.rating ? renderStars(t.rating) : ""}
                   {isAdmin && (
-                    <button className="btn delete-btn" onClick={() => handleDeleteTestimonial(t.id)} style={{ marginLeft: "1rem" }}>
+                    <button
+                      className="btn delete-btn"
+                      onClick={() => handleDeleteTestimonial(t.id)}
+                    >
                       Delete
                     </button>
                   )}
@@ -712,7 +763,7 @@ const Home = () => {
             <p>No testimonials yet.</p>
           )}
         </div>
-        <div className="testimonial-form-container" style={{ marginTop: "2rem" }}>
+        <div className="testimonial-form-container">
           <h3>Leave a Comment</h3>
           <form onSubmit={handleTestimonialSubmit} className="testimonial-form">
             <div>
@@ -736,19 +787,24 @@ const Home = () => {
             </div>
             <div>
               <label>Star Rating:</label>
-              <div className="star-rating" style={{ fontSize: "1.5rem" }}>
+              <div className="star-rating">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <span
                     key={star}
                     onClick={() => setTestimonialRating(star)}
-                    style={{ cursor: "pointer", color: testimonialRating >= star ? "gold" : "gray" }}
+                    style={{
+                      cursor: "pointer",
+                      color: testimonialRating >= star ? "gold" : "gray",
+                    }}
                   >
                     {testimonialRating >= star ? "★" : "☆"}
                   </span>
                 ))}
               </div>
             </div>
-            <button type="submit" style={{ marginTop: "1rem" }}>Submit</button>
+            <button type="submit" className="resume-button">
+              Submit
+            </button>
           </form>
         </div>
       </section>
@@ -759,18 +815,14 @@ const Home = () => {
       )}
       {modalItem && modalItem.isPdf && (
         <div className="modal-overlay" onClick={() => { setModalItem(null); setZoom(1); }}>
-          <div
-            className="modal-content"
-            onClick={(e) => e.stopPropagation()}
-            style={{ width: "90vw", height: "90vh", maxWidth: "1000px", maxHeight: "90vh", backgroundColor: "#000", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", borderRadius: "8px", overflow: "hidden" }}
-          >
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <iframe 
               src={modalItem.url} 
               title="Full PDF Preview" 
-              className="pdf-frame" 
-              style={{ width: "100%", height: "100%", border: "none", overflow: "hidden", scrollbarWidth: "none" }}
+              className="pdf-frame"
+              style={{ width: "100%", height: "100%" }}
             />
-            <div className="modal-controls" style={{ padding: "0.5rem", background: "#f0f0f0", textAlign: "center", width: "100%" }}>
+            <div className="modal-controls">
               <button onClick={() => { setModalItem(null); setZoom(1); }}>Close</button>
             </div>
           </div>

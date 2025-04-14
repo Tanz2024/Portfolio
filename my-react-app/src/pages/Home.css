@@ -13,7 +13,6 @@ body {
   color: #21243d;
 }
 
-/* Container for the entire page */
 .home-page {
   width: 100%;
 }
@@ -21,23 +20,41 @@ body {
 /* ------------------------------------- */
 /* HERO SECTION */
 /* ------------------------------------- */
+/* Default (Desktop/Laptop) layout */
 .hero-section {
   display: flex;
-  flex-direction: column; /* Stack on mobile */
-  flex-wrap: wrap;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  padding: 3rem 1.5rem;
+  justify-content: space-between;
+  padding: 3rem 2rem;
   background-color: rgba(255, 255, 255, 0.8);
   border-bottom: 1px solid #e0e0e0;
   position: relative;
 }
 
+/* Increase image size and add subtle drop shadow for desktop */
+.hero-image {
+  width: 100%;
+  max-width: 300px; /* Increased image size */
+  margin-right: 2rem;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.hero-image img {
+  width: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #e0e0e0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Added drop shadow */
+}
+
+/* Make bio text wider and align content vertically centered */
 .hero-content {
-  flex: 1;
-  max-width: 100%;
-  margin-bottom: 1.5rem;
-  text-align: center;
+  width: 100%;
+  max-width: 800px; /* Wider bio block on desktop */
+  text-align: left;
   opacity: 0;
   transform: translateY(20px);
   transition: opacity 0.8s ease-out, transform 0.8s ease-out;
@@ -56,7 +73,8 @@ body {
   color: #666;
 }
 
-.resume-button {
+.resume-button,
+.profile-image-button {
   background-color: #ff6464;
   color: #fff;
   border: none;
@@ -65,29 +83,42 @@ body {
   cursor: pointer;
   font-weight: 600;
   transition: background-color 0.3s ease;
+  margin: 0.5rem 0;
 }
 
-.resume-button:hover {
+.resume-button:hover,
+.profile-image-button:hover {
   background-color: #ff4a4a;
 }
 
-.hero-image {
-  max-width: 250px;
-  width: 100%;
-  margin-bottom: 1.5rem;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+.cancel-button {
+  background-color: #ccc !important;
+  color: #333 !important;
 }
 
-.hero-image img {
-  width: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 4px solid #e0e0e0;
+/* ------------------------------------- */
+/* MOBILE OVERRIDES */
+/* ------------------------------------- */
+@media (max-width: 767px) {
+  /* On mobile, force vertical stacking: image above content */
+  .hero-section {
+    flex-direction: column;
+    align-items: center;
+    padding: 3rem 1.5rem;
+  }
+  .hero-image {
+    order: 1;
+    margin: 0 0 1.5rem 0;
+  }
+  .hero-content {
+    order: 2;
+    text-align: center;
+  }
 }
 
-/* Scroll Down Arrow */
+/* ------------------------------------- */
+/* SCROLL DOWN ARROW */
+/* ------------------------------------- */
 .scroll-down {
   position: absolute;
   bottom: 20px;
@@ -100,22 +131,16 @@ body {
 }
 
 @keyframes bounce {
-  0%, 20%, 50%, 80%, 100% {
-    transform: translate(-50%, 0);
-  }
-  40% {
-    transform: translate(-50%, -10px);
-  }
-  60% {
-    transform: translate(-50%, -5px);
-  }
+  0%, 20%, 50%, 80%, 100% { transform: translate(-50%, 0); }
+  40% { transform: translate(-50%, -10px); }
+  60% { transform: translate(-50%, -5px); }
 }
 
 /* ------------------------------------- */
 /* SECTIONS */
 /* ------------------------------------- */
 section {
-  padding: 2rem 1.5rem;
+  padding: 2rem 2rem;
   background-color: #ffffff;
 }
 
@@ -143,7 +168,7 @@ section h2 {
   padding: 1.5rem;
   border-radius: 8px;
   border: 1px solid #e0e0e0;
-  position: relative; /* For badge positioning */
+  position: relative;
 }
 
 .post-card h3 {
@@ -175,19 +200,17 @@ section h2 {
 
 .work-card {
   display: flex;
-  flex-direction: column; /* Stack on mobile */
+  flex-direction: column;
   gap: 1.5rem;
   background: #fafafa;
   padding: 1.5rem;
   border-radius: 8px;
   border: 1px solid #e0e0e0;
-  position: relative; /* For badge positioning */
+  position: relative;
 }
 
-/* Left column (image/pdf preview) */
 .work-card-image-col {
-  flex: 1;
-  max-width: 100%;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -213,7 +236,6 @@ section h2 {
   color: #999;
 }
 
-/* PDF Thumbnail container */
 .pdf-thumbnail {
   position: relative;
   width: 100%;
@@ -235,7 +257,6 @@ section h2 {
   font-size: 0.85rem;
 }
 
-/* Right column (text content) */
 .work-card-content-col {
   flex: 2;
   display: flex;
@@ -391,7 +412,6 @@ section h2 {
   background: #e04444;
 }
 
-/* Hide scrollbars for iframes with .pdf-frame */
 .pdf-frame {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -415,7 +435,7 @@ section h2 {
   transform: translateY(0);
 }
 
-/* Skeleton Loader Styles */
+/* Skeleton Loader */
 .skeleton-container {
   display: flex;
   gap: 1rem;
@@ -442,15 +462,10 @@ section h2 {
 }
 
 @keyframes loading {
-  0% {
-    left: -150px;
-  }
-  100% {
-    left: 100%;
-  }
+  0% { left: -150px; }
+  100% { left: 100%; }
 }
 
-/* Specific skeleton sizes */
 .skeleton-post {
   width: 280px;
   height: 150px;
@@ -465,18 +480,18 @@ section h2 {
 }
 
 /* ------------------------------------- */
-/* NEW BADGE & RECENT ITEM STYLES */
+/* NEW BADGE STYLES */
 /* ------------------------------------- */
 .post-card,
 .work-card {
   position: relative;
-  overflow: visible; /* Allow badge to extend outside */
+  overflow: visible;
 }
 
 .new-badge {
   position: absolute;
-  top: -10px;      /* Shift upward */
-  right: -40px;    /* Shift right */
+  top: -10px;
+  right: -40px;
   background-color: #d32f2f;
   color: #fff;
   padding: 0.4rem 1rem;
@@ -485,52 +500,39 @@ section h2 {
   text-transform: uppercase;
   transform: rotate(45deg);
   transform-origin: center;
-  border-radius: 0;
   z-index: 9999;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-@keyframes pulse {
-  0% { transform: scale(1) rotate(45deg) translate(25%, -50%); }
-  50% { transform: scale(1.05) rotate(45deg) translate(25%, -50%); }
-  100% { transform: scale(1) rotate(45deg) translate(25%, -50%); }
 }
 
 /* ------------------------------------- */
 /* MEDIA QUERIES (Tablets and Larger Screens) */
 /* ------------------------------------- */
 @media (min-width: 768px) {
-
-  /* HERO SECTION: side-by-side layout */
   .hero-section {
     flex-direction: row;
     justify-content: space-between;
     padding: 3rem 2rem;
   }
-
+  
   .hero-content {
     text-align: left;
-    max-width: 600px;
     margin-right: 2rem;
   }
   
   .hero-image {
     margin-bottom: 0;
   }
-
-  /* RECENT POSTS: grid layout with auto-fit columns */
+  
   .posts-grid {
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   }
-
-  /* FEATURED WORKS: horizontal work card */
+  
   .work-card {
     flex-direction: row;
     align-items: center;
   }
-
+  
   .work-card-image-col {
-    margin-bottom: 0;
     margin-right: 1.5rem;
     max-width: 300px;
   }
@@ -540,23 +542,25 @@ section h2 {
 /* MEDIA QUERIES (Very Small Screens) */
 /* ------------------------------------- */
 @media (max-width: 480px) {
-  body {
-    font-size: 0.9rem;
-  }
+  body { font-size: 0.9rem; }
+  .hero-content h1 { font-size: 1.8rem; }
+  .hero-content p { font-size: 0.95rem; }
+  .resume-button { padding: 0.65rem 1.25rem; }
+  section { padding: 2rem 1rem; }
+}
 
-  .hero-content h1 {
-    font-size: 1.8rem;
-  }
+/* Centering Buttons */
+.centered-button {
+  text-align: center;
+  margin-top: 1.5rem;
+}
 
-  .hero-content p {
-    font-size: 0.95rem;
-  }
+/* Testimonial Form Container */
+.testimonial-form-container {
+  margin-top: 2rem;
+}
 
-  .resume-button {
-    padding: 0.65rem 1.25rem;
-  }
-
-  section {
-    padding: 2rem 1rem;
-  }
+/* Star Rating Display */
+.star-display {
+  margin-left: 0.5rem;
 }
