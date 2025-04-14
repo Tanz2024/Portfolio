@@ -14,7 +14,6 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   "https://tanzimportfolio.web.app",
   "https://portfolio-tfli.onrender.com",
-
 ];
 
 // ✅ FIX 1: CORS should be the VERY FIRST middleware
@@ -36,6 +35,17 @@ app.options("*", cors());
 // ✅ Parse incoming JSON and cookies globally
 app.use(express.json());
 app.use(cookieParser());
+// -----------------------------
+// Health Check Endpoint
+// -----------------------------
+app.get('/', (req, res) => {
+  res.status(200).send('Backend is up and running!');
+});
+
+app.get('/api/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
 // -----------------------------
 // Ensure the uploads directory exists BEFORE using it
 // -----------------------------

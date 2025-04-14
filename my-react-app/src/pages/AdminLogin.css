@@ -11,9 +11,10 @@ body {
   background-color: #f8f9fa;
 }
 
+/* Default is stacked layout for mobile */
 .admin-login-container {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   min-height: 100vh;
   height: 100dvh;
   overflow: hidden;
@@ -23,6 +24,14 @@ body {
     height: 100dvh;
   }
 }
+
+/* Large screens: switch to side-by-side layout */
+@media (min-width: 768px) {
+  .admin-login-container {
+    flex-direction: row;
+  }
+}
+
 /* Info Panel: Logo/Message/Image at top */
 .info-panel {
   flex: 1;
@@ -259,7 +268,7 @@ body {
 /* Tablets and small screens */
 @media (max-width: 768px) {
   .admin-login-container {
-    flex-direction: column;
+    /* Already column by default; ensure scrolling if content overflows */
     height: auto;
     min-height: 100dvh;
     overflow-y: auto;
@@ -284,7 +293,6 @@ body {
   }
 }
 
-
 /* Phones and very small screens */
 @media (max-width: 480px) {
   .info-panel {
@@ -307,21 +315,18 @@ body {
   }
 }
 
-
 /* Remove default mobile styling */
 input,
 button {
   -webkit-appearance: none;
   appearance: none;
 }
-html, body {
+html,
+body {
   height: 100%;
 }
-
 input,
 button {
-  -webkit-appearance: none;
-  appearance: none;
   font-family: inherit;
 }
 

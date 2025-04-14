@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaGithub, FaLinkedin, FaTwitter, FaArrowUp } from 'react-icons/fa';
+import { FaGithub, FaLinkedin, FaEnvelope, FaArrowUp } from 'react-icons/fa';
 import './Footer.css';
 
 const Footer = () => {
@@ -43,12 +43,10 @@ const Footer = () => {
             <FaLinkedin />
           </a>
           <a
-            href="https://twitter.com/@Heytanz100"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Twitter Profile"
+            href="mailto:tanzimbinzahir2019@gmail.com"
+            aria-label="Email Tanzim Bin Zahir"
           >
-            <FaTwitter />
+            <FaEnvelope />
           </a>
         </div>
       </footer>
