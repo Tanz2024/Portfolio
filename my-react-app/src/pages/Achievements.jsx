@@ -3,7 +3,7 @@ import { useAuth } from "../AuthContext"; // Custom hook providing isAdmin flag
 import "./Achievements.css";
 
 // Central API URL for calls and asset loading.
-const API_BASE_URL = "https://portfolio-1-716m.onrender.com";
+const API_BASE_URL = "https://tanzimportfolio.web.app";
 
 const Achievements = () => {
   const [achievements, setAchievements] = useState([]);

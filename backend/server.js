@@ -14,7 +14,6 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   "https://tanzimportfolio.web.app",
   "https://portfolio-tfli.onrender.com",
-
 ];
 
 // ✅ FIX 1: CORS should be the VERY FIRST middleware
