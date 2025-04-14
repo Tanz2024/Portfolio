@@ -32,7 +32,7 @@ const AdminLogin = () => {
     setErrorMessage(""); // Clear previous errors
 
     try {
-      const response = await fetch("https://tanzimportfolio.web.app/login/admin", {
+      const response = await fetch("https://portfolio-tfli.onrender.com/login/admin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -63,7 +63,7 @@ const AdminLogin = () => {
     setErrorMessage("");
 
     try {
-      const response = await fetch("https://tanzimportfolio.web.app/login/user", {
+      const response = await fetch("https://portfolio-tfli.onrender.com/login/user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
