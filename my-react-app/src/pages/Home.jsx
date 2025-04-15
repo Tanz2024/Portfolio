@@ -38,11 +38,14 @@ const Home = () => {
   // -----------------------------
   // State: Testimonial Submission
   // -----------------------------
+  // These are used for both new submission and editing an existing testimonial.
   const [testimonialName, setTestimonialName] = useState("");
   const [testimonialComment, setTestimonialComment] = useState("");
   const [testimonialRating, setTestimonialRating] = useState(5);
   // Honeypot state (should remain empty)
   const [emailConfirm, setEmailConfirm] = useState("");
+  // State to track if the user already submitted a testimonial.
+  const [userTestimonialId, setUserTestimonialId] = useState(null);
 
   // -----------------------------
   // State: Profile Image & Bio Data
@@ -70,7 +73,22 @@ const Home = () => {
   const isRecent = (dateString) => {
     const itemDate = new Date(dateString);
     const now = new Date();
-    return now - itemDate < 24 * 60 * 60 * 1000; // less than one day
+    return now - itemDate < 24 * 60 * 60 * 1000;
+  };
+
+  // -----------------------------
+  // Helper: Format time as HH:MM:SS (unused now)
+  // -----------------------------
+  const formatTime = (ms) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600)
+      .toString()
+      .padStart(2, "0");
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+      .toString()
+      .padStart(2, "0");
+    const seconds = (totalSeconds % 60).toString().padStart(2, "0");
+    return `${hours}:${minutes}:${seconds}`;
   };
 
   // -----------------------------
@@ -96,7 +114,19 @@ const Home = () => {
         // Fetch Testimonials
         const testimonialsRes = await fetch("https://portfolio-1-716m.onrender.com/api/testimonials");
         if (testimonialsRes.ok) {
-          setTestimonials(await testimonialsRes.json());
+          const data = await testimonialsRes.json();
+          setTestimonials(data);
+          // Try to find the current user's testimonial from localStorage.
+          const storedId = localStorage.getItem("userTestimonialId");
+          if (storedId) {
+            const myTestimonial = data.find(t => t.id.toString() === storedId);
+            if (myTestimonial) {
+              setUserTestimonialId(storedId);
+              setTestimonialName(myTestimonial.name);
+              setTestimonialComment(myTestimonial.comment);
+              setTestimonialRating(myTestimonial.rating || 5);
+            }
+          }
         }
 
         // Authenticate User
@@ -156,7 +186,7 @@ const Home = () => {
   };
 
   // -----------------------------
-  // Resume Handlers
+  // Resume Handlers (unchanged)
   // -----------------------------
   const handleResumeDownload = () => {
     window.open("https://portfolio-1-716m.onrender.com/api/resume/download", "_blank");
@@ -204,7 +234,7 @@ const Home = () => {
   };
 
   // -----------------------------
-  // Profile Image Handlers
+  // Profile Image Handlers (unchanged)
   // -----------------------------
   const toggleProfileImageForm = () => {
     setShowProfileImageForm((prev) => !prev);
@@ -245,7 +275,7 @@ const Home = () => {
   };
 
   // -----------------------------
-  // Editable Bio Handlers (Admin Only)
+  // Editable Bio Handlers (Admin Only) (unchanged)
   // -----------------------------
   const toggleEditBio = () => {
     setEditingBio((prev) => !prev);
@@ -286,7 +316,7 @@ const Home = () => {
   };
 
   // -----------------------------
-  // Testimonial & Project Handlers
+  // Testimonial & Project Handlers (Modified for one testimonial per IP)
   // -----------------------------
   const handleTestimonialSubmit = async (e) => {
     e.preventDefault();
@@ -295,31 +325,53 @@ const Home = () => {
       console.warn("Bot submission detected.");
       return;
     }
-    const newTestimonial = {
+
+    const testimonialData = {
       name: testimonialName,
       comment: testimonialComment,
       rating: testimonialRating,
     };
+
     try {
-      const res = await fetch("https://portfolio-1-716m.onrender.com/api/testimonials", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newTestimonial),
-      });
-      if (res.ok) {
-        const createdTestimonial = await res.json();
-        setTestimonials((prev) => [createdTestimonial, ...prev]);
-        setTestimonialName("");
-        setTestimonialComment("");
-        setTestimonialRating(5);
-        toast.success("Thank you for your feedback!");
-      } else {
-        const errData = await res.json();
-        // Display a production-level message if the IP already submitted a testimonial
-        if (errData.error && errData.error.includes("already submitted")) {
-          toast.warn("You have already submitted a testimonial. Please edit your existing testimonial if you wish to update it.");
+      // If the user already has a testimonial (tracked via localStorage), update it.
+      if (userTestimonialId) {
+        const res = await fetch(
+          `https://portfolio-1-716m.onrender.com/api/testimonials/${userTestimonialId}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(testimonialData),
+          }
+        );
+        if (res.ok) {
+          const updatedTestimonial = await res.json();
+          // Update local testimonials state
+          setTestimonials((prev) =>
+            prev.map((t) =>
+              t.id.toString() === userTestimonialId ? updatedTestimonial.testimonial : t
+            )
+          );
+          toast.success("Your testimonial has been updated.");
         } else {
-          toast.error("Error submitting testimonial.");
+          const errData = await res.json();
+          toast.error(errData.error || "Error updating testimonial.");
+        }
+      } else {
+        // Otherwise, create a new testimonial.
+        const res = await fetch("https://portfolio-1-716m.onrender.com/api/testimonials", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(testimonialData),
+        });
+        if (res.ok) {
+          const createdTestimonial = await res.json();
+          setTestimonials((prev) => [createdTestimonial, ...prev]);
+          setUserTestimonialId(createdTestimonial.id.toString());
+          localStorage.setItem("userTestimonialId", createdTestimonial.id.toString());
+          toast.success("Thank you for your feedback!");
+        } else {
+          const errData = await res.json();
+          toast.error(errData.error || "Error submitting testimonial.");
         }
       }
     } catch (err) {
@@ -337,6 +389,15 @@ const Home = () => {
       });
       if (res.ok) {
         setTestimonials((prev) => prev.filter((t) => t.id !== testimonialId));
+        // If the deleted testimonial was the one from this user, clear localStorage
+        if (testimonialId.toString() === userTestimonialId) {
+          setUserTestimonialId(null);
+          localStorage.removeItem("userTestimonialId");
+          // Also clear the testimonial form fields so the user can create a new one if desired.
+          setTestimonialName("");
+          setTestimonialComment("");
+          setTestimonialRating(5);
+        }
         toast.success("Testimonial deleted.");
       }
     } catch (err) {
@@ -361,7 +422,7 @@ const Home = () => {
   };
 
   // -----------------------------
-  // Intersection Observer for Fade-In Animation
+  // Intersection Observer for Fade-In Animation (unchanged)
   // -----------------------------
   useEffect(() => {
     const elements = document.querySelectorAll(".animate-on-scroll");
@@ -381,7 +442,7 @@ const Home = () => {
   }, []);
 
   // -----------------------------
-  // Star Rating Renderer
+  // Star Rating Renderer (unchanged)
   // -----------------------------
   const renderStars = (rating) => (
     <span className="star-display">
@@ -394,7 +455,7 @@ const Home = () => {
   );
 
   // -----------------------------
-  // Slider Settings for Blogs Carousel
+  // Slider Settings for Blogs Carousel (unchanged)
   // -----------------------------
   const sliderSettings = {
     dots: true,
@@ -419,7 +480,7 @@ const Home = () => {
   };
 
   // -----------------------------
-  // Render a Screenshot with Click-to-Preview
+  // Render a Screenshot with Click-to-Preview (unchanged)
   // -----------------------------
   const renderScreenshot = (fileUrl, index) => {
     const fullUrl = `https://portfolio-1-716m.onrender.com${fileUrl}`;
@@ -451,7 +512,7 @@ const Home = () => {
   };
 
   // -----------------------------
-  // JSX Return
+  // JSX Return (render remains largely the same)
   // -----------------------------
   return (
     <div className="home-page">
@@ -687,7 +748,7 @@ const Home = () => {
           )}
         </div>
         <div className="testimonial-form-container">
-          <h3>Leave a Comment</h3>
+          <h3>{userTestimonialId ? "Edit Your Comment" : "Leave a Comment"}</h3>
           <form onSubmit={handleTestimonialSubmit} className="testimonial-form">
             <div>
               <label htmlFor="testimonialName">Your Name:</label>
@@ -706,7 +767,7 @@ const Home = () => {
                 value={testimonialComment}
                 onChange={(e) => setTestimonialComment(e.target.value)}
                 required
-                maxLength={300} // Setting max character count
+                maxLength={300}
                 placeholder="Write your comment (max 300 characters)"
               />
               <small>{testimonialComment.length}/300</small>
@@ -736,13 +797,9 @@ const Home = () => {
               </div>
             </div>
             <button type="submit" className="resume-button">
-              Submit
+              {userTestimonialId ? "Update Comment" : "Submit"}
             </button>
           </form>
-          <p className="info-msg">
-            Note: You have already submitted a testimonial if your IP is already registered.
-            Please edit your existing testimonial if you wish to update it.
-          </p>
         </div>
       </section>
 

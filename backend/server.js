@@ -62,7 +62,6 @@ function hashIP(ip) {
   return crypto.createHash("sha256").update(ip).digest("hex");
 }
 
-
 // -----------------------------
 // Serve static files from the uploads folder
 // -----------------------------
@@ -625,10 +624,10 @@ app.get('/api/public/profile-image', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 // -----------------------------
 // TESTIMONIALS API
 // -----------------------------
-
 // GET: Retrieve all testimonials (publicly accessible)
 app.get("/api/testimonials", async (req, res) => {
   try {
@@ -641,30 +640,31 @@ app.get("/api/testimonials", async (req, res) => {
   }
 });
 
-// POST: Create a new testimonial with IP check
+// POST: Create a new testimonial
+// Each guest (IP) can only ever submit one testimonial.
 app.post("/api/testimonials", async (req, res) => {
   const { name, comment, rating } = req.body;
   if (!name || !comment) {
     return res.status(400).json({ error: "Name and comment are required." });
   }
 
-  // Get the raw IP address and hash it for privacy
+  // Get the raw IP address and hash it for privacy.
   const rawIp = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
   const hashedIp = hashIP(rawIp);
 
   try {
-    // Check if a testimonial from this IP already exists
+    // Check if this IP has already submitted a testimonial.
     const existing = await pool.query(
       "SELECT id FROM testimonials WHERE ip_address = $1",
       [hashedIp]
     );
     if (existing.rowCount > 0) {
       return res.status(403).json({
-        error:
-          "You have already submitted a testimonial. Please edit your existing testimonial.",
+        error: "A testimonial from this IP address has already been submitted."
       });
     }
 
+    // Insert the new testimonial if none exists.
     const result = await pool.query(
       "INSERT INTO testimonials (name, comment, rating, ip_address) VALUES ($1, $2, $3, $4) RETURNING *",
       [name, comment, rating || null, hashedIp]
@@ -675,15 +675,16 @@ app.post("/api/testimonials", async (req, res) => {
   }
 });
 
-// PUT: Update a testimonial (guest can only update their own testimonial based on IP matching)
+// PUT: Update a testimonial
+// A guest can only update a testimonial that was created from the same IP.
 app.put("/api/testimonials/:id", async (req, res) => {
   const { name, comment, rating } = req.body;
-  // Get the raw IP address and hash it
+  // Get the raw IP address and hash it.
   const rawIp = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
   const hashedIp = hashIP(rawIp);
 
   try {
-    // Verify that the testimonial exists and that the IP address matches
+    // Verify that the testimonial exists and that the IP address matches.
     const existing = await pool.query(
       "SELECT ip_address FROM testimonials WHERE id = $1",
       [req.params.id]
@@ -695,7 +696,7 @@ app.put("/api/testimonials/:id", async (req, res) => {
       return res.status(403).json({ error: "You can only edit your own testimonial." });
     }
 
-    // Update the testimonial
+    // Update the testimonial.
     const result = await pool.query(
       `UPDATE testimonials
        SET name = COALESCE($1, name),
@@ -726,6 +727,7 @@ app.delete("/api/testimonials/:id", verifyAdmin, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // GET public profile info (for bio) – no authentication required
 app.get('/api/public/profile', async (req, res) => {
