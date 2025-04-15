@@ -9,6 +9,8 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import "./Home.css";
 
+const TESTIMONIAL_COOLDOWN = 24 * 60 * 60 * 1000; // 24 hours in ms
+
 const Home = () => {
   const navigate = useNavigate();
   const recentPostsRef = useRef(null);
@@ -41,6 +43,11 @@ const Home = () => {
   const [testimonialName, setTestimonialName] = useState("");
   const [testimonialComment, setTestimonialComment] = useState("");
   const [testimonialRating, setTestimonialRating] = useState(5);
+  // Honeypot state (should remain empty)
+  const [emailConfirm, setEmailConfirm] = useState("");
+
+  // Timer state for next allowed submission
+  const [cooldown, setCooldown] = useState(0);
 
   // -----------------------------
   // State: Profile Image & Bio Data
@@ -69,6 +76,21 @@ const Home = () => {
     const itemDate = new Date(dateString);
     const now = new Date();
     return now - itemDate < 24 * 60 * 60 * 1000; // less than one day
+  };
+
+  // -----------------------------
+  // Helper: Format time as HH:MM:SS
+  // -----------------------------
+  const formatTime = (ms) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600)
+      .toString()
+      .padStart(2, "0");
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+      .toString()
+      .padStart(2, "0");
+    const seconds = (totalSeconds % 60).toString().padStart(2, "0");
+    return `${hours}:${minutes}:${seconds}`;
   };
 
   // -----------------------------
@@ -103,7 +125,7 @@ const Home = () => {
           const authData = await authRes.json();
           if (authData) {
             if (!sessionStorage.getItem("welcomeShown")) {
-              toast.info("Welcome to my Portfolio ! Enjoy exploring my portfolio.", { autoClose: 3000 });
+              toast.info("Welcome to my Portfolio! Enjoy exploring my portfolio.", { autoClose: 3000 });
               sessionStorage.setItem("welcomeShown", "true");
             }
             if (authData.role_id === 1) setIsAdmin(true);
@@ -130,7 +152,35 @@ const Home = () => {
       }
     };
     fetchData();
+
+    // Check localStorage for last testimonial submission timestamp
+    const lastSubmission = localStorage.getItem("lastTestimonialSubmission");
+    if (lastSubmission) {
+      const elapsed = Date.now() - Number(lastSubmission);
+      if (elapsed < TESTIMONIAL_COOLDOWN) {
+        setCooldown(TESTIMONIAL_COOLDOWN - elapsed);
+      }
+    }
   }, []);
+
+  // -----------------------------
+  // Timer effect for testimonial cooldown
+  // -----------------------------
+  useEffect(() => {
+    if (cooldown <= 0) return;
+
+    const interval = setInterval(() => {
+      setCooldown((prev) => {
+        const newTime = prev - 1000;
+        if (newTime <= 0) {
+          clearInterval(interval);
+          return 0;
+        }
+        return newTime;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [cooldown]);
 
   // -----------------------------
   // Close Modal on Esc key
@@ -288,6 +338,16 @@ const Home = () => {
   // -----------------------------
   const handleTestimonialSubmit = async (e) => {
     e.preventDefault();
+    // Check honeypot field – if filled, silently abort
+    if (emailConfirm.trim() !== "") {
+      console.warn("Bot submission detected.");
+      return;
+    }
+    // If cooldown timer is active, do not allow submission
+    if (cooldown > 0) {
+      toast.warn("You have recently submitted a testimonial. Please wait until the timer expires.");
+      return;
+    }
     const newTestimonial = {
       name: testimonialName,
       comment: testimonialComment,
@@ -305,9 +365,17 @@ const Home = () => {
         setTestimonialName("");
         setTestimonialComment("");
         setTestimonialRating(5);
-        toast.success("Testimonial submitted!");
+        toast.success("Thank you for your feedback!");
+        // Set local cooldown timer (store timestamp)
+        localStorage.setItem("lastTestimonialSubmission", Date.now());
+        setCooldown(TESTIMONIAL_COOLDOWN);
       } else {
-        toast.error("Error submitting testimonial.");
+        const errData = await res.json();
+        if (errData.error && errData.error.includes("Only one testimonial per day")) {
+          toast.warn("You've already submitted a testimonial today. Please try again tomorrow.");
+        } else {
+          toast.error("Error submitting testimonial.");
+        }
       }
     } catch (err) {
       console.error("Error submitting testimonial:", err);
@@ -446,18 +514,14 @@ const Home = () => {
 
       {/* HERO SECTION */}
       <header className="hero-section">
-        {/* HERO IMAGE (Picture on Top) */}
+        {/* HERO IMAGE */}
         <div className="hero-image animate-on-scroll">
           {profileImageURL && (
-            <img
-              src={profileImageURL}
-              alt="Profile of Tanzim Bin Zahir"
-              loading="lazy"
-            />
+            <img src={profileImageURL} alt="Profile of Tanzim Bin Zahir" loading="lazy" />
           )}
         </div>
 
-        {/* HERO CONTENT (Text, Bio, Buttons, Forms) */}
+        {/* HERO CONTENT */}
         <div className="hero-content animate-on-scroll">
           {editingBio ? (
             <form onSubmit={handleBioSubmit} className="bio-edit-form">
@@ -476,16 +540,8 @@ const Home = () => {
                 placeholder="Describe yourself and your work..."
                 required
               ></textarea>
-              <button type="submit" className="resume-button">
-                Save Bio
-              </button>
-              <button
-                type="button"
-                className="resume-button cancel-button"
-                onClick={toggleEditBio}
-              >
-                Cancel
-              </button>
+              <button type="submit" className="resume-button">Save Bio</button>
+              <button type="button" className="resume-button cancel-button" onClick={toggleEditBio}>Cancel</button>
               {bioMessage && <p className="success-msg">{bioMessage}</p>}
               {bioError && <p className="error-msg">{bioError}</p>}
             </form>
@@ -496,29 +552,16 @@ const Home = () => {
                 {bioData.description ||
                   "I help brands stand out with modern digital experiences. My work is focused on building visually engaging, user-friendly solutions."}
               </p>
-              {isAdmin && (
-                <button className="resume-button" onClick={toggleEditBio}>
-                  Edit Bio
-                </button>
-              )}
+              {isAdmin && <button className="resume-button" onClick={toggleEditBio}>Edit Bio</button>}
             </>
           )}
 
           <div className="resume-buttons">
-            <button className="resume-button" onClick={handleResumeDownload}>
-              Download Resume
-            </button>
+            <button className="resume-button" onClick={handleResumeDownload}>Download Resume</button>
             {isAdmin && (
               <>
-                <button className="resume-button" onClick={toggleUploadForm}>
-                  Upload Resume
-                </button>
-                <button
-                  className="profile-image-button"
-                  onClick={toggleProfileImageForm}
-                >
-                  Change Profile Image
-                </button>
+                <button className="resume-button" onClick={toggleUploadForm}>Upload Resume</button>
+                <button className="profile-image-button" onClick={toggleProfileImageForm}>Change Profile Image</button>
               </>
             )}
           </div>
@@ -528,23 +571,11 @@ const Home = () => {
               <div className="form-content">
                 <div className="form-row">
                   <label htmlFor="resume-file">Resume (PDF):</label>
-                  <input
-                    type="file"
-                    id="resume-file"
-                    accept=".pdf"
-                    onChange={handleResumeChange}
-                  />
+                  <input type="file" id="resume-file" accept=".pdf" onChange={handleResumeChange} />
                 </div>
                 <div className="form-actions">
-                  <button className="resume-button" onClick={handleUpload}>
-                    Confirm Upload
-                  </button>
-                  <button
-                    className="resume-button cancel-button"
-                    onClick={toggleUploadForm}
-                  >
-                    Cancel
-                  </button>
+                  <button className="resume-button" onClick={handleUpload}>Confirm Upload</button>
+                  <button className="resume-button cancel-button" onClick={toggleUploadForm}>Cancel</button>
                 </div>
                 {uploadMessage && <p className="success-msg">{uploadMessage}</p>}
                 {uploadError && <p className="error-msg">{uploadError}</p>}
@@ -556,38 +587,20 @@ const Home = () => {
             <div className="upload-form profile-image-form">
               <div className="form-content">
                 <div className="form-row">
-                  <label htmlFor="profile-image-file">
-                    Profile Image (JPG/PNG):
-                  </label>
+                  <label htmlFor="profile-image-file">Profile Image (JPG/PNG):</label>
                   <input
                     type="file"
                     id="profile-image-file"
                     accept="image/*"
-                    onChange={(e) =>
-                      setProfileImageFile(e.target.files[0])
-                    }
+                    onChange={(e) => setProfileImageFile(e.target.files[0])}
                   />
                 </div>
                 <div className="form-actions">
-                  <button
-                    className="profile-image-button"
-                    onClick={handleProfileImageUpload}
-                  >
-                    Upload Image
-                  </button>
-                  <button
-                    className="profile-image-button cancel-button"
-                    onClick={toggleProfileImageForm}
-                  >
-                    Cancel
-                  </button>
+                  <button className="profile-image-button" onClick={handleProfileImageUpload}>Upload Image</button>
+                  <button className="profile-image-button cancel-button" onClick={toggleProfileImageForm}>Cancel</button>
                 </div>
-                {profileImageUploadMessage && (
-                  <p className="success-msg">{profileImageUploadMessage}</p>
-                )}
-                {profileImageUploadError && (
-                  <p className="error-msg">{profileImageUploadError}</p>
-                )}
+                {profileImageUploadMessage && <p className="success-msg">{profileImageUploadMessage}</p>}
+                {profileImageUploadError && <p className="error-msg">{profileImageUploadError}</p>}
               </div>
             </div>
           )}
@@ -606,12 +619,7 @@ const Home = () => {
         ) : blogs.length > 0 ? (
           <Slider {...sliderSettings}>
             {blogs.map((blog) => (
-              <div
-                key={blog.id}
-                className={`post-card ${
-                  isRecent(blog.date) ? "latest-post" : ""
-                }`}
-              >
+              <div key={blog.id} className={`post-card ${isRecent(blog.date) ? "latest-post" : ""}`}>
                 {isRecent(blog.date) && <span className="new-badge">New</span>}
                 <h3>{blog.title}</h3>
                 <div className="post-meta">
@@ -627,12 +635,7 @@ const Home = () => {
           <p>No recent posts available.</p>
         )}
         <div className="centered-button">
-          <button
-            className="resume-button"
-            onClick={() => navigate("/blogs")}
-          >
-            View All Blogs
-          </button>
+          <button className="resume-button" onClick={() => navigate("/blogs")}>View All Blogs</button>
         </div>
       </section>
 
@@ -649,26 +652,13 @@ const Home = () => {
             {projects.slice(0, 3).map((project) => {
               let screenshots = [];
               try {
-                screenshots = project.screenshots
-                  ? JSON.parse(project.screenshots)
-                  : [];
+                screenshots = project.screenshots ? JSON.parse(project.screenshots) : [];
               } catch (e) {
-                console.warn(
-                  "Invalid screenshots JSON for project",
-                  project.id,
-                  e
-                );
+                console.warn("Invalid screenshots JSON for project", project.id, e);
               }
               return (
-                <article
-                  key={project.id}
-                  className={`work-card ${
-                    project.date && isRecent(project.date) ? "latest-project" : ""
-                  }`}
-                >
-                  {project.date && isRecent(project.date) && (
-                    <span className="new-badge">New</span>
-                  )}
+                <article key={project.id} className={`work-card ${project.date && isRecent(project.date) ? "latest-project" : ""}`}>
+                  {project.date && isRecent(project.date) && <span className="new-badge">New</span>}
                   <div className="screenshots-row">
                     {screenshots.length > 0 &&
                       screenshots.map((screenshot, idx) => (
@@ -680,10 +670,7 @@ const Home = () => {
                               className="pdf-frame"
                               style={{ cursor: "pointer" }}
                               onClick={() => {
-                                setModalItem({
-                                  url: `https://portfolio-1-716m.onrender.com${screenshot}`,
-                                  isPdf: true,
-                                });
+                                setModalItem({ url: `https://portfolio-1-716m.onrender.com${screenshot}`, isPdf: true });
                                 setZoom(1);
                               }}
                             />
@@ -693,12 +680,7 @@ const Home = () => {
                               alt={`Screenshot ${idx + 1}`}
                               className="project-image"
                               style={{ cursor: "pointer" }}
-                              onClick={() =>
-                                setModalItem({
-                                  url: `https://portfolio-1-716m.onrender.com${screenshot}`,
-                                  isPdf: false,
-                                })
-                              }
+                              onClick={() => setModalItem({ url: `https://portfolio-1-716m.onrender.com${screenshot}`, isPdf: false })}
                             />
                           )}
                         </div>
@@ -707,19 +689,12 @@ const Home = () => {
                   <div className="work-info">
                     <h3 className="work-title">{project.title}</h3>
                     <div className="work-meta">
-                      {project.year && (
-                        <span className="work-year">{project.year}</span>
-                      )}
-                      {project.category && (
-                        <span className="work-category">{project.category}</span>
-                      )}
+                      {project.year && <span className="work-year">{project.year}</span>}
+                      {project.category && <span className="work-category">{project.category}</span>}
                     </div>
                     <p className="work-description">{project.description}</p>
                     {isAdmin && (
-                      <button
-                        className="btn delete-btn"
-                        onClick={() => handleDeleteProject(project.id)}
-                      >
+                      <button className="btn delete-btn" onClick={() => handleDeleteProject(project.id)}>
                         Delete Project
                       </button>
                     )}
@@ -732,9 +707,7 @@ const Home = () => {
           <p>No featured works available.</p>
         )}
         <div className="centered-button">
-          <button className="resume-button" onClick={() => navigate("/work")}>
-            View All Projects
-          </button>
+          <button className="resume-button" onClick={() => navigate("/work")}>View All Projects</button>
         </div>
       </section>
 
@@ -748,11 +721,16 @@ const Home = () => {
                 <p>"{t.comment}"</p>
                 <footer>
                   - {t.name} {t.rating ? renderStars(t.rating) : ""}
+                  {t.created_at && (
+                    <br />
+                  )}
+                  {t.created_at && (
+                    <span className="testimonial-date">
+                      {new Date(t.created_at).toLocaleString()}
+                    </span>
+                  )}
                   {isAdmin && (
-                    <button
-                      className="btn delete-btn"
-                      onClick={() => handleDeleteTestimonial(t.id)}
-                    >
+                    <button className="btn delete-btn" onClick={() => handleDeleteTestimonial(t.id)}>
                       Delete
                     </button>
                   )}
@@ -765,6 +743,11 @@ const Home = () => {
         </div>
         <div className="testimonial-form-container">
           <h3>Leave a Comment</h3>
+          {cooldown > 0 && (
+            <p className="cooldown-msg">
+              You can submit another testimonial in: {formatTime(cooldown)}
+            </p>
+          )}
           <form onSubmit={handleTestimonialSubmit} className="testimonial-form">
             <div>
               <label htmlFor="testimonialName">Your Name:</label>
@@ -783,8 +766,21 @@ const Home = () => {
                 value={testimonialComment}
                 onChange={(e) => setTestimonialComment(e.target.value)}
                 required
+                maxLength={300} // Setting max character count
+                placeholder="Write your comment (max 300 characters)"
               />
+              <small>{testimonialComment.length}/300</small>
             </div>
+            {/* Honeypot Field */}
+            <input
+              type="text"
+              name="email_confirm"
+              value={emailConfirm}
+              onChange={(e) => setEmailConfirm(e.target.value)}
+              style={{ display: "none" }}
+              tabIndex="-1"
+              autoComplete="off"
+            />
             <div>
               <label>Star Rating:</label>
               <div className="star-rating">
@@ -792,20 +788,21 @@ const Home = () => {
                   <span
                     key={star}
                     onClick={() => setTestimonialRating(star)}
-                    style={{
-                      cursor: "pointer",
-                      color: testimonialRating >= star ? "gold" : "gray",
-                    }}
+                    style={{ cursor: "pointer", color: testimonialRating >= star ? "gold" : "gray" }}
                   >
                     {testimonialRating >= star ? "★" : "☆"}
                   </span>
                 ))}
               </div>
             </div>
-            <button type="submit" className="resume-button">
+            <button type="submit" className="resume-button" disabled={cooldown > 0}>
               Submit
             </button>
           </form>
+          <p className="info-msg">
+            Note: In production, each IP address is limited to one testimonial per day.
+            If you've already submitted a comment, please try again tomorrow.
+          </p>
         </div>
       </section>
 

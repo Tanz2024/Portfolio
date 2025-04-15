@@ -564,3 +564,30 @@ section h2 {
 .star-display {
   margin-left: 0.5rem;
 }
+/* Max Character Count Indicator for testimonial comment textarea */
+.testimonial-form textarea + small {
+  display: block;
+  margin-top: 4px;
+  color: #888;
+  font-size: 0.85rem;
+}
+
+/* Cooldown Timer Message Style */
+.cooldown-msg {
+  font-size: 1rem;
+  color: #d32f2f;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+/* Disable submit button when cooldown is active */
+.testimonial-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Honeypot Field (ensuring it's hidden) */
+input[name="email_confirm"] {
+  display: none;
+}

@@ -54,6 +54,22 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
   console.log(`Created uploads folder at ${uploadDir}`);
 }
+const crypto = require("crypto");
+const rateLimit = require("express-rate-limit");
+
+// Helper: Hash IP address for privacy
+function hashIP(ip) {
+  return crypto.createHash("sha256").update(ip).digest("hex");
+}
+
+// Setup Rate Limiter for testimonials: limit to 1 submission per IP per 24 hours
+const testimonialLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000, // 24 hours
+  max: 1, // limit each IP to 1 request per windowMs
+  message: { error: "Only one testimonial per day is allowed from a single IP." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // -----------------------------
 // Serve static files from the uploads folder
@@ -621,24 +637,35 @@ app.get('/api/public/profile-image', async (req, res) => {
 // -----------------------------
 // TESTIMONIALS API
 // -----------------------------
+
+// GET: Retrieve all testimonials (publicly accessible)
 app.get("/api/testimonials", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM testimonials ORDER BY created_at DESC");
+    const result = await pool.query(
+      "SELECT * FROM testimonials ORDER BY created_at DESC"
+    );
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.post("/api/testimonials", async (req, res) => {
+// POST: Create a new testimonial with rate limiting and IP hashing
+app.post("/api/testimonials", testimonialLimiter, async (req, res) => {
   const { name, comment, rating } = req.body;
   if (!name || !comment) {
     return res.status(400).json({ error: "Name and comment are required." });
   }
+
+  // Get the raw IP address and hash it for privacy
+  const rawIp = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+  const hashedIp = hashIP(rawIp);
+
   try {
     const result = await pool.query(
-      "INSERT INTO testimonials (name, comment, rating) VALUES ($1, $2, $3) RETURNING *",
-      [name, comment, rating || null]
+      // Note: Removed "approved" since we no longer use it.
+      "INSERT INTO testimonials (name, comment, rating, ip_address) VALUES ($1, $2, $3, $4) RETURNING *",
+      [name, comment, rating || null, hashedIp]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -646,7 +673,43 @@ app.post("/api/testimonials", async (req, res) => {
   }
 });
 
-// DELETE: Delete a testimonial (admin only)
+// PUT: Update a testimonial (guest can only update their own testimonial based on IP matching)
+app.put("/api/testimonials/:id", async (req, res) => {
+  const { name, comment, rating } = req.body;
+  // Get the raw IP address and hash it
+  const rawIp = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+  const hashedIp = hashIP(rawIp);
+
+  try {
+    // Verify that the testimonial exists and that the IP address matches
+    const existing = await pool.query(
+      "SELECT ip_address FROM testimonials WHERE id = $1",
+      [req.params.id]
+    );
+    if (existing.rowCount === 0) {
+      return res.status(404).json({ error: "Testimonial not found." });
+    }
+    if (existing.rows[0].ip_address !== hashedIp) {
+      return res.status(403).json({ error: "You can only edit your own testimonial." });
+    }
+
+    // Update the testimonial
+    const result = await pool.query(
+      `UPDATE testimonials
+       SET name = COALESCE($1, name),
+           comment = COALESCE($2, comment),
+           rating = COALESCE($3, rating)
+       WHERE id = $4
+       RETURNING *`,
+      [name, comment, rating || null, req.params.id]
+    );
+    res.json({ message: "Testimonial updated successfully.", testimonial: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE: Remove a testimonial (admin only)
 app.delete("/api/testimonials/:id", verifyAdmin, async (req, res) => {
   try {
     const result = await pool.query(
@@ -661,6 +724,7 @@ app.delete("/api/testimonials/:id", verifyAdmin, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // GET public profile info (for bio) – no authentication required
 app.get('/api/public/profile', async (req, res) => {
@@ -678,7 +742,6 @@ app.get('/api/public/profile', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 // GET user profile info (for admin editing; requires token)
 app.get('/api/user/profile', verifyToken, async (req, res) => {
   try {
