@@ -748,76 +748,80 @@ const Home = () => {
         </div>
       </section>
 
-      {/* TESTIMONIALS SECTION */}
-      <section className="testimonials animate-on-scroll">
-        <h2>Testimonials</h2>
-        <div className="testimonial-slider">
-          {testimonials.length > 0 ? (
-            testimonials.map((t) => (
-              <blockquote key={t.id} className="testimonial">
-                <p>"{t.comment}"</p>
-                <footer>
-                  - {t.name} {t.rating ? renderStars(t.rating) : ""}
-                  {isAdmin && (
-                    <button
-                      className="btn delete-btn"
-                      onClick={() => handleDeleteTestimonial(t.id)}
-                    >
-                      Delete
-                    </button>
-                  )}
-                </footer>
-              </blockquote>
-            ))
-          ) : (
-            <p>No testimonials yet.</p>
-          )}
+    {/* TESTIMONIALS SECTION */}
+<section className="testimonials animate-on-scroll">
+  <h2>Testimonials</h2>
+  <div className="testimonial-slider">
+    {testimonials.length > 0 ? (
+      testimonials.map((t) => (
+        <blockquote key={t.id} className="testimonial">
+          <p>"{t.comment}"</p>
+          <footer>
+            - {t.name} {t.rating ? renderStars(t.rating) : ""}
+            <br />
+            <span className="testimonial-date">
+              Posted on: {new Date(t.created_at).toLocaleString()}
+            </span>
+            {isAdmin && (
+              <button
+                className="btn delete-btn"
+                onClick={() => handleDeleteTestimonial(t.id)}
+              >
+                Delete
+              </button>
+            )}
+          </footer>
+        </blockquote>
+      ))
+    ) : (
+      <p>No testimonials yet.</p>
+    )}
+  </div>
+  <div className="testimonial-form-container">
+    <h3>Leave a Comment</h3>
+    <form onSubmit={handleTestimonialSubmit} className="testimonial-form">
+      <div>
+        <label htmlFor="testimonialName">Your Name:</label>
+        <input
+          id="testimonialName"
+          type="text"
+          value={testimonialName}
+          onChange={(e) => setTestimonialName(e.target.value)}
+          required
+        />
+      </div>
+      <div>
+        <label htmlFor="testimonialComment">Comment:</label>
+        <textarea
+          id="testimonialComment"
+          value={testimonialComment}
+          onChange={(e) => setTestimonialComment(e.target.value)}
+          required
+        />
+      </div>
+      <div>
+        <label>Star Rating:</label>
+        <div className="star-rating">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <span
+              key={star}
+              onClick={() => setTestimonialRating(star)}
+              style={{
+                cursor: "pointer",
+                color: testimonialRating >= star ? "gold" : "gray",
+              }}
+            >
+              {testimonialRating >= star ? "★" : "☆"}
+            </span>
+          ))}
         </div>
-        <div className="testimonial-form-container">
-          <h3>Leave a Comment</h3>
-          <form onSubmit={handleTestimonialSubmit} className="testimonial-form">
-            <div>
-              <label htmlFor="testimonialName">Your Name:</label>
-              <input
-                id="testimonialName"
-                type="text"
-                value={testimonialName}
-                onChange={(e) => setTestimonialName(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="testimonialComment">Comment:</label>
-              <textarea
-                id="testimonialComment"
-                value={testimonialComment}
-                onChange={(e) => setTestimonialComment(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label>Star Rating:</label>
-              <div className="star-rating">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <span
-                    key={star}
-                    onClick={() => setTestimonialRating(star)}
-                    style={{
-                      cursor: "pointer",
-                      color: testimonialRating >= star ? "gold" : "gray",
-                    }}
-                  >
-                    {testimonialRating >= star ? "★" : "☆"}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <button type="submit" className="resume-button">
-              Submit
-            </button>
-          </form>
-        </div>
-      </section>
+      </div>
+      <button type="submit" className="resume-button">
+        Submit
+      </button>
+    </form>
+  </div>
+</section>
 
       {/* MODAL FOR PREVIEW */}
       {modalItem && !modalItem.isPdf && (
