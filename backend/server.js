@@ -54,22 +54,14 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
   console.log(`Created uploads folder at ${uploadDir}`);
 }
+
 const crypto = require("crypto");
-const rateLimit = require("express-rate-limit");
 
 // Helper: Hash IP address for privacy
 function hashIP(ip) {
   return crypto.createHash("sha256").update(ip).digest("hex");
 }
 
-// Setup Rate Limiter for testimonials: limit to 1 submission per IP per 24 hours
-const testimonialLimiter = rateLimit({
-  windowMs: 24 * 60 * 60 * 1000, // 24 hours
-  max: 1, // limit each IP to 1 request per windowMs
-  message: { error: "Only one testimonial per day is allowed from a single IP." },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
 
 // -----------------------------
 // Serve static files from the uploads folder
@@ -633,7 +625,6 @@ app.get('/api/public/profile-image', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 // -----------------------------
 // TESTIMONIALS API
 // -----------------------------
@@ -650,8 +641,8 @@ app.get("/api/testimonials", async (req, res) => {
   }
 });
 
-// POST: Create a new testimonial with rate limiting and IP hashing
-app.post("/api/testimonials", testimonialLimiter, async (req, res) => {
+// POST: Create a new testimonial with IP check
+app.post("/api/testimonials", async (req, res) => {
   const { name, comment, rating } = req.body;
   if (!name || !comment) {
     return res.status(400).json({ error: "Name and comment are required." });
@@ -662,8 +653,19 @@ app.post("/api/testimonials", testimonialLimiter, async (req, res) => {
   const hashedIp = hashIP(rawIp);
 
   try {
+    // Check if a testimonial from this IP already exists
+    const existing = await pool.query(
+      "SELECT id FROM testimonials WHERE ip_address = $1",
+      [hashedIp]
+    );
+    if (existing.rowCount > 0) {
+      return res.status(403).json({
+        error:
+          "You have already submitted a testimonial. Please edit your existing testimonial.",
+      });
+    }
+
     const result = await pool.query(
-      // Note: Removed "approved" since we no longer use it.
       "INSERT INTO testimonials (name, comment, rating, ip_address) VALUES ($1, $2, $3, $4) RETURNING *",
       [name, comment, rating || null, hashedIp]
     );
@@ -724,7 +726,6 @@ app.delete("/api/testimonials/:id", verifyAdmin, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // GET public profile info (for bio) – no authentication required
 app.get('/api/public/profile', async (req, res) => {

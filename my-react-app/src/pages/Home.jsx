@@ -9,8 +9,6 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import "./Home.css";
 
-const TESTIMONIAL_COOLDOWN = 24 * 60 * 60 * 1000; // 24 hours in ms
-
 const Home = () => {
   const navigate = useNavigate();
   const recentPostsRef = useRef(null);
@@ -46,9 +44,6 @@ const Home = () => {
   // Honeypot state (should remain empty)
   const [emailConfirm, setEmailConfirm] = useState("");
 
-  // Timer state for next allowed submission
-  const [cooldown, setCooldown] = useState(0);
-
   // -----------------------------
   // State: Profile Image & Bio Data
   // -----------------------------
@@ -76,21 +71,6 @@ const Home = () => {
     const itemDate = new Date(dateString);
     const now = new Date();
     return now - itemDate < 24 * 60 * 60 * 1000; // less than one day
-  };
-
-  // -----------------------------
-  // Helper: Format time as HH:MM:SS
-  // -----------------------------
-  const formatTime = (ms) => {
-    const totalSeconds = Math.floor(ms / 1000);
-    const hours = Math.floor(totalSeconds / 3600)
-      .toString()
-      .padStart(2, "0");
-    const minutes = Math.floor((totalSeconds % 3600) / 60)
-      .toString()
-      .padStart(2, "0");
-    const seconds = (totalSeconds % 60).toString().padStart(2, "0");
-    return `${hours}:${minutes}:${seconds}`;
   };
 
   // -----------------------------
@@ -152,35 +132,7 @@ const Home = () => {
       }
     };
     fetchData();
-
-    // Check localStorage for last testimonial submission timestamp
-    const lastSubmission = localStorage.getItem("lastTestimonialSubmission");
-    if (lastSubmission) {
-      const elapsed = Date.now() - Number(lastSubmission);
-      if (elapsed < TESTIMONIAL_COOLDOWN) {
-        setCooldown(TESTIMONIAL_COOLDOWN - elapsed);
-      }
-    }
   }, []);
-
-  // -----------------------------
-  // Timer effect for testimonial cooldown
-  // -----------------------------
-  useEffect(() => {
-    if (cooldown <= 0) return;
-
-    const interval = setInterval(() => {
-      setCooldown((prev) => {
-        const newTime = prev - 1000;
-        if (newTime <= 0) {
-          clearInterval(interval);
-          return 0;
-        }
-        return newTime;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [cooldown]);
 
   // -----------------------------
   // Close Modal on Esc key
@@ -343,11 +295,6 @@ const Home = () => {
       console.warn("Bot submission detected.");
       return;
     }
-    // If cooldown timer is active, do not allow submission
-    if (cooldown > 0) {
-      toast.warn("You have recently submitted a testimonial. Please wait until the timer expires.");
-      return;
-    }
     const newTestimonial = {
       name: testimonialName,
       comment: testimonialComment,
@@ -366,13 +313,11 @@ const Home = () => {
         setTestimonialComment("");
         setTestimonialRating(5);
         toast.success("Thank you for your feedback!");
-        // Set local cooldown timer (store timestamp)
-        localStorage.setItem("lastTestimonialSubmission", Date.now());
-        setCooldown(TESTIMONIAL_COOLDOWN);
       } else {
         const errData = await res.json();
-        if (errData.error && errData.error.includes("Only one testimonial per day")) {
-          toast.warn("You've already submitted a testimonial today. Please try again tomorrow.");
+        // Display a production-level message if the IP already submitted a testimonial
+        if (errData.error && errData.error.includes("already submitted")) {
+          toast.warn("You have already submitted a testimonial. Please edit your existing testimonial if you wish to update it.");
         } else {
           toast.error("Error submitting testimonial.");
         }
@@ -722,12 +667,12 @@ const Home = () => {
                 <footer>
                   - {t.name} {t.rating ? renderStars(t.rating) : ""}
                   {t.created_at && (
-                    <br />
-                  )}
-                  {t.created_at && (
-                    <span className="testimonial-date">
-                      {new Date(t.created_at).toLocaleString()}
-                    </span>
+                    <>
+                      <br />
+                      <span className="testimonial-date">
+                        {new Date(t.created_at).toLocaleString()}
+                      </span>
+                    </>
                   )}
                   {isAdmin && (
                     <button className="btn delete-btn" onClick={() => handleDeleteTestimonial(t.id)}>
@@ -743,11 +688,6 @@ const Home = () => {
         </div>
         <div className="testimonial-form-container">
           <h3>Leave a Comment</h3>
-          {cooldown > 0 && (
-            <p className="cooldown-msg">
-              You can submit another testimonial in: {formatTime(cooldown)}
-            </p>
-          )}
           <form onSubmit={handleTestimonialSubmit} className="testimonial-form">
             <div>
               <label htmlFor="testimonialName">Your Name:</label>
@@ -795,13 +735,13 @@ const Home = () => {
                 ))}
               </div>
             </div>
-            <button type="submit" className="resume-button" disabled={cooldown > 0}>
+            <button type="submit" className="resume-button">
               Submit
             </button>
           </form>
           <p className="info-msg">
-            Note: In production, each IP address is limited to one testimonial per day.
-            If you've already submitted a comment, please try again tomorrow.
+            Note: You have already submitted a testimonial if your IP is already registered.
+            Please edit your existing testimonial if you wish to update it.
           </p>
         </div>
       </section>
