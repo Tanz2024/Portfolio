@@ -293,12 +293,14 @@ const Home = () => {
       comment: testimonialComment,
       rating: testimonialRating,
     };
+  
     try {
       const res = await fetch("https://portfolio-1-716m.onrender.com/api/testimonials", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newTestimonial),
       });
+  
       if (res.ok) {
         const createdTestimonial = await res.json();
         setTestimonials((prev) => [createdTestimonial, ...prev]);
@@ -307,14 +309,22 @@ const Home = () => {
         setTestimonialRating(5);
         toast.success("Testimonial submitted!");
       } else {
-        toast.error("Error submitting testimonial.");
+        const errData = await res.json();
+        if (
+          errData.error &&
+          errData.error.toLowerCase().includes("only one testimonial")
+        ) {
+          toast.warn("Your comment already exists. You cannot comment again.");
+        } else {
+          toast.error("Error submitting testimonial.");
+        }
       }
     } catch (err) {
       console.error("Error submitting testimonial:", err);
       toast.error("Error submitting testimonial.");
     }
   };
-
+  
   const handleDeleteTestimonial = async (testimonialId) => {
     if (!window.confirm("Are you sure you want to delete this testimonial?")) return;
     try {
