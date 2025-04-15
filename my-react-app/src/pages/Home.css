@@ -564,34 +564,3 @@ section h2 {
 .star-display {
   margin-left: 0.5rem;
 }
-/* ------------------------------------- */
-/* TESTIMONIAL FORM STYLES (UPDATED) */
-/* ------------------------------------- */
-
-/* Max Character Count Indicator for testimonial comment textarea */
-.testimonial-form textarea + small {
-  display: block;
-  margin-top: 4px;
-  color: #888;
-  font-size: 0.85rem;
-}
-
-/* Production-level Info Message for duplicate testimonials */
-.testimonial-form .info-msg {
-  font-size: 1rem;
-  color: #d32f2f; /* red color to indicate warning */
-  font-weight: bold;
-  text-align: center;
-  margin-top: 1rem;
-}
-
-/* Optional: Disable submit button style (in case any button is disabled) */
-.testimonial-form button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Honeypot Field (ensuring it's hidden) */
-input[name="email_confirm"] {
-  display: none;
-}
