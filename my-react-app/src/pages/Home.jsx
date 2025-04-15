@@ -78,27 +78,27 @@ const Home = () => {
     const fetchData = async () => {
       try {
         // Fetch Blogs
-        const blogsRes = await fetch("https://portfolio-tfli.onrender.com/api/blogs");
+        const blogsRes = await fetch("https://portfolio-1-716m.onrender.com/api/blogs");
         if (blogsRes.ok) {
           setBlogs(await blogsRes.json());
         }
         setLoadingBlogs(false);
 
         // Fetch Projects
-        const projectsRes = await fetch("https://portfolio-tfli.onrender.com/api/projects");
+        const projectsRes = await fetch("https://portfolio-1-716m.onrender.com/api/projects");
         if (projectsRes.ok) {
           setProjects(await projectsRes.json());
         }
         setLoadingProjects(false);
 
         // Fetch Testimonials
-        const testimonialsRes = await fetch("https://portfolio-tfli.onrender.com/api/testimonials");
+        const testimonialsRes = await fetch("https://portfolio-1-716m.onrender.com/api/testimonials");
         if (testimonialsRes.ok) {
           setTestimonials(await testimonialsRes.json());
         }
 
         // Authenticate User
-        const authRes = await fetch("https://portfolio-tfli.onrender.com/authenticate", { credentials: "include" });
+        const authRes = await fetch("https://portfolio-1-716m.onrender.com/authenticate", { credentials: "include" });
         if (authRes.ok) {
           const authData = await authRes.json();
           if (authData) {
@@ -111,16 +111,16 @@ const Home = () => {
         }
 
         // Fetch Profile Image
-        const profileRes = await fetch("https://portfolio-tfli.onrender.com/api/public/profile-image");
+        const profileRes = await fetch("https://portfolio-1-716m.onrender.com/api/public/profile-image");
         if (profileRes.ok) {
           const data = await profileRes.json();
           if (data.profileImageURL) {
-            setProfileImageURL("https://portfolio-tfli.onrender.com" + data.profileImageURL);
+            setProfileImageURL("https://portfolio-1-716m.onrender.com" + data.profileImageURL);
           }
         }
         
         // Fetch Bio Data
-        const bioRes = await fetch("https://portfolio-tfli.onrender.com/api/public/profile");
+        const bioRes = await fetch("https://portfolio-1-716m.onrender.com/api/public/profile");
         if (bioRes.ok) {
           const bioInfo = await bioRes.json();
           setBioData({ name: bioInfo.name, description: bioInfo.bio });
@@ -157,7 +157,7 @@ const Home = () => {
   // Resume Handlers
   // -----------------------------
   const handleResumeDownload = () => {
-    window.open("https://portfolio-tfli.onrender.com/api/resume/download", "_blank");
+    window.open("https://portfolio-1-716m.onrender.com/api/resume/download", "_blank");
   };
 
   const toggleUploadForm = () => {
@@ -179,7 +179,7 @@ const Home = () => {
     try {
       const formData = new FormData();
       formData.append("resume", resumeFile);
-      const res = await fetch("https://portfolio-tfli.onrender.com/api/resume", {
+      const res = await fetch("https://portfolio-1-716m.onrender.com/api/resume", {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -219,7 +219,7 @@ const Home = () => {
     try {
       const formData = new FormData();
       formData.append("profileImage", profileImageFile);
-      const res = await fetch("https://portfolio-tfli.onrender.com/api/profile-image", {
+      const res = await fetch("https://portfolio-1-716m.onrender.com/api/profile-image", {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -228,7 +228,7 @@ const Home = () => {
         const data = await res.json();
         setProfileImageUploadMessage(data.message || "Profile image updated successfully!");
         setProfileImageUploadError("");
-        setProfileImageURL("https://portfolio-tfli.onrender.com" + data.profileImageURL);
+        setProfileImageURL("https://portfolio-1-716m.onrender.com" + data.profileImageURL);
         toast.success("Profile image updated!");
       } else {
         const errData = await res.json();
@@ -259,7 +259,7 @@ const Home = () => {
   const handleBioSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("https://portfolio-tfli.onrender.com/api/user/profile", {
+      const res = await fetch("https://portfolio-1-716m.onrender.com/api/user/profile", {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -294,7 +294,7 @@ const Home = () => {
       rating: testimonialRating,
     };
     try {
-      const res = await fetch("https://portfolio-tfli.onrender.com/api/testimonials", {
+      const res = await fetch("https://portfolio-1-716m.onrender.com/api/testimonials", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newTestimonial),
@@ -318,7 +318,7 @@ const Home = () => {
   const handleDeleteTestimonial = async (testimonialId) => {
     if (!window.confirm("Are you sure you want to delete this testimonial?")) return;
     try {
-      const res = await fetch(`https://portfolio-tfli.onrender.com/api/testimonials/${testimonialId}`, {
+      const res = await fetch(`https://portfolio-1-716m.onrender.com/api/testimonials/${testimonialId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -334,7 +334,7 @@ const Home = () => {
   const handleDeleteProject = async (projectId) => {
     if (!window.confirm("Are you sure you want to delete this project?")) return;
     try {
-      const res = await fetch(`https://portfolio-tfli.onrender.com/api/projects/${projectId}`, {
+      const res = await fetch(`https://portfolio-1-716m.onrender.com/api/projects/${projectId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -409,7 +409,7 @@ const Home = () => {
   // Render a Screenshot with Click-to-Preview
   // -----------------------------
   const renderScreenshot = (fileUrl, index) => {
-    const fullUrl = `https://portfolio-tfli.onrender.com${fileUrl}`;
+    const fullUrl = `https://portfolio-1-716m.onrender.com${fileUrl}`;
     const isPdf = fileUrl.toLowerCase().endsWith(".pdf");
     return (
       <div key={index} className="file-preview">
@@ -675,13 +675,13 @@ const Home = () => {
                         <div key={idx} className="file-preview">
                           {screenshot.toLowerCase().endsWith(".pdf") ? (
                             <iframe
-                              src={`https://portfolio-tfli.onrender.com${screenshot}`}
+                              src={`https://portfolio-1-716m.onrender.com${screenshot}`}
                               title={`PDF-${idx}`}
                               className="pdf-frame"
                               style={{ cursor: "pointer" }}
                               onClick={() => {
                                 setModalItem({
-                                  url: `https://portfolio-tfli.onrender.com${screenshot}`,
+                                  url: `https://portfolio-1-716m.onrender.com${screenshot}`,
                                   isPdf: true,
                                 });
                                 setZoom(1);
@@ -689,13 +689,13 @@ const Home = () => {
                             />
                           ) : (
                             <img
-                              src={`https://portfolio-tfli.onrender.com${screenshot}`}
+                              src={`https://portfolio-1-716m.onrender.com${screenshot}`}
                               alt={`Screenshot ${idx + 1}`}
                               className="project-image"
                               style={{ cursor: "pointer" }}
                               onClick={() =>
                                 setModalItem({
-                                  url: `https://portfolio-tfli.onrender.com${screenshot}`,
+                                  url: `https://portfolio-1-716m.onrender.com${screenshot}`,
                                   isPdf: false,
                                 })
                               }
