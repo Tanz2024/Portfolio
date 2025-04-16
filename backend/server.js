@@ -15,7 +15,7 @@ const allowedOrigins = [
   "https://tanzimportfolio.web.app",
   "https://portfolio-1-716m.onrender.com",
 ];
-
+app.set('trust proxy', true);
 // ✅ FIX 1: CORS should be the VERY FIRST middleware
 app.use(cors({
   origin: function (origin, callback) {
@@ -63,14 +63,7 @@ function hashIP(ip) {
   return crypto.createHash("sha256").update(ip).digest("hex");
 }
 
-// Setup Rate Limiter for testimonials: limit to 1 submission per IP per 24 hours
-const testimonialLimiter = rateLimit({
-  wwindowMs: 365 * 24 * 60 * 60 * 1000,
-  max: 1, // limit each IP to 1 request per windowMs
-  message: { error: "Only one testimonial per day is allowed from a single IP." },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+
 
 // -----------------------------
 // Serve static files from the uploads folder
@@ -650,36 +643,49 @@ app.get("/api/testimonials", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-// POST: Create a new testimonial with rate limiting and IP hashing
-app.post("/api/testimonials", testimonialLimiter, async (req, res) => {
+app.post("/api/testimonials", async (req, res) => {
   const { name, comment, rating } = req.body;
   if (!name || !comment) {
     return res.status(400).json({ error: "Name and comment are required." });
   }
 
-  // Get the raw IP address and hash it for privacy
-  const rawIp = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+  const rawIp = req.ip;
   const hashedIp = hashIP(rawIp);
+  console.log("User IP (for debug):", rawIp);
 
   try {
+    // ✅ Check if this IP already submitted a testimonial
+    const check = await pool.query(
+      "SELECT id FROM testimonials WHERE ip_address = $1",
+      [hashedIp]
+    );
+    if (check.rows.length > 0) {
+      return res.status(409).json({
+        error: "You have already submitted a testimonial. You can only edit it.",
+      });
+    }
+
+    // ✅ Insert new testimonial
     const result = await pool.query(
-      // Note: Removed "approved" since we no longer use it.
       "INSERT INTO testimonials (name, comment, rating, ip_address) VALUES ($1, $2, $3, $4) RETURNING *",
       [name, comment, rating || null, hashedIp]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Error creating testimonial:", err);
+    res.status(500).json({ error: "Server error." });
   }
 });
+
+
 
 // PUT: Update a testimonial (guest can only update their own testimonial based on IP matching)
 app.put("/api/testimonials/:id", async (req, res) => {
   const { name, comment, rating } = req.body;
   // Get the raw IP address and hash it
-  const rawIp = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+  const rawIp = req.ip;
   const hashedIp = hashIP(rawIp);
+  
 
   try {
     // Verify that the testimonial exists and that the IP address matches
@@ -784,20 +790,49 @@ app.put('/api/user/profile', verifyToken, async (req, res) => {
 // -----------------------------
 app.post("/api/contact", async (req, res) => {
   const { name, email, message } = req.body;
+  const rawIp = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+  const hashedIp = hashIP(rawIp);
+
+  // Strict email validation regex
+  const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+
   if (!name || !email || !message) {
     return res.status(400).json({ success: false, error: "All fields are required." });
   }
+
+  if (!isValidEmail) {
+    return res.status(400).json({ success: false, error: "Please enter a valid email address." });
+  }
+
   try {
-    const result = await pool.query(
-      "INSERT INTO contacts (name, email, message) VALUES ($1, $2, $3) RETURNING *",
-      [name, email, message]
+    const recent = await pool.query(
+      `SELECT created_at FROM contacts WHERE ip_hash = $1 ORDER BY created_at DESC LIMIT 1`,
+      [hashedIp]
     );
+
+    if (recent.rows.length > 0) {
+      const last = new Date(recent.rows[0].created_at);
+      const now = new Date();
+      const diffMinutes = (now - last) / 1000 / 60;
+      if (diffMinutes < 30) {
+        return res.status(429).json({
+          success: false,
+          error: `You can only submit once every 30 minutes. Please wait ${Math.ceil(30 - diffMinutes)} more minute(s).`,
+        });
+      }
+    }
+
+    const result = await pool.query(
+      "INSERT INTO contacts (name, email, message, ip_hash) VALUES ($1, $2, $3, $4) RETURNING *",
+      [name, email, message, hashedIp]
+    );
+
     res.status(201).json({ success: true, data: result.rows[0] });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    console.error("Error saving contact message:", err);
+    res.status(500).json({ success: false, error: "Server error." });
   }
 });
-
 
 // -----------------------------
 // Start the Server

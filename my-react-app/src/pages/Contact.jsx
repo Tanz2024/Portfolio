@@ -4,8 +4,16 @@ import './Contact.css';
 
 // Import Firestore-related functions and DB from your Firebase config
 import { db } from '../firebaseConfig';
-
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  query,
+  where,
+  orderBy,
+  limit,
+  getDocs
+} from 'firebase/firestore';
 
 const Contact = () => {
   // Form state (includes a honeypot field for spam protection)
@@ -20,9 +28,9 @@ const Contact = () => {
   const [fieldErrors, setFieldErrors] = useState({});
   const errorRef = useRef(null);
 
-  // Helper function to validate email with a regex
+  // Use a stricter regex for email validation.
   const isValidEmail = (email) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+    /^[^\s@]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim());
 
   // Field-level validation on blur
   const validateField = (name, value) => {
@@ -35,26 +43,26 @@ const Contact = () => {
     setFieldErrors((prev) => ({ ...prev, [name]: error }));
   };
 
-  // Handle changes in inputs and update the state; update character count for message field
+  // Handle input changes; update character count for message field
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === 'message') setCharCount(value.length);
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear error for the field as the user types
+    // Clear field error as user types
     setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
-  // Form submission handler
+  // Form submission handler with rate limiting check (30 minutes per email)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check honeypot field for bot submissions
+    // Check honeypot field for bots
     if (formData.botField.trim() !== '') {
       console.warn('Bot submission blocked.');
       return;
     }
 
-    // Validate required fields and collect errors
+    // Validate required fields
     const errors = {};
     ['name', 'email', 'message'].forEach((field) => {
       if (!formData[field] || formData[field].trim() === '') {
@@ -67,9 +75,38 @@ const Contact = () => {
     if (Object.keys(errors).length) {
       setFieldErrors(errors);
       setStatus('error');
-      if (errorRef.current) {
-        errorRef.current.focus();
+      errorRef.current && errorRef.current.focus();
+      return;
+    }
+
+    // Before sending, check Firestore to see if this email has submitted in the last 30 minutes
+    try {
+      const contactsRef = collection(db, 'contacts');
+      const q = query(
+        contactsRef,
+        where('email', '==', formData.email.trim().toLowerCase()),
+        orderBy('createdAt', 'desc'),
+        limit(1)
+      );
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        const lastDoc = querySnapshot.docs[0].data();
+        // Convert Firestore timestamp to Date (if exists)
+        const lastTimestamp = lastDoc.createdAt?.toDate ? lastDoc.createdAt.toDate() : new Date(lastDoc.createdAt);
+        const now = new Date();
+        const diffMinutes = (now - lastTimestamp) / (1000 * 60);
+        if (diffMinutes < 30) {
+          setStatus('error');
+          toast.error(`Please wait ${Math.ceil(30 - diffMinutes)} more minute(s) before sending another message.`);
+          return;
+        }
       }
+    } catch (firestoreError) {
+      console.error("Firestore rate-limiting check failed:", firestoreError);
+      // You might choose to allow submission if check fails, or block.
+      // For safety, you could block submission here.
+      setStatus('error');
+      toast.error("Could not verify rate limit. Please try again later.");
       return;
     }
 
@@ -81,7 +118,7 @@ const Contact = () => {
       const templateID = process.env.REACT_APP_EMAILJS_TEMPLATE;
       const publicKey = process.env.REACT_APP_EMAILJS_USER;
 
-      // Send the email via EmailJS
+      // Send email via EmailJS
       await emailjs.send(
         serviceID,
         templateID,
@@ -93,10 +130,10 @@ const Contact = () => {
         publicKey
       );
 
-      // Save submission data to Firestore in the "contacts" collection
+      // Save submission to Firestore
       await addDoc(collection(db, 'contacts'), {
         name: formData.name,
-        email: formData.email,
+        email: formData.email.trim().toLowerCase(),
         message: formData.message,
         createdAt: serverTimestamp(),
       });
@@ -132,7 +169,6 @@ const Contact = () => {
         <h1>Contact Me</h1>
         <p>Feel free to reach out with questions, ideas, or collaborations.</p>
       </header>
-
       <main className="contact-main">
         <form className="contact-form" onSubmit={handleSubmit} noValidate>
           {/* Name Field */}
@@ -205,7 +241,7 @@ const Contact = () => {
             )}
           </div>
 
-          {/* Honeypot Field (hidden from users) */}
+          {/* Honeypot Field (hidden) */}
           <div style={{ display: 'none' }}>
             <label htmlFor="botField">Do not fill this field</label>
             <input
@@ -225,7 +261,7 @@ const Contact = () => {
             )}
           </button>
 
-          {/* Status and error messages */}
+          {/* Status Messages */}
           <div
             className="form-messages"
             role="alert"

@@ -41,6 +41,8 @@ const Home = () => {
   const [testimonialName, setTestimonialName] = useState("");
   const [testimonialComment, setTestimonialComment] = useState("");
   const [testimonialRating, setTestimonialRating] = useState(5);
+  // New state to track if a testimonial from current guest exists
+  const [userTestimonial, setUserTestimonial] = useState(null);
 
   // -----------------------------
   // State: Profile Image & Bio Data
@@ -68,7 +70,7 @@ const Home = () => {
   const isRecent = (dateString) => {
     const itemDate = new Date(dateString);
     const now = new Date();
-    return now - itemDate < 24 * 60 * 60 * 1000; // less than one day
+    return now - itemDate < 24 * 60 * 60 * 1000;
   };
 
   // -----------------------------
@@ -97,13 +99,32 @@ const Home = () => {
           setTestimonials(await testimonialsRes.json());
         }
 
+        // Fetch user's testimonial (by IP)
+        try {
+          const checkRes = await fetch("https://portfolio-1-716m.onrender.com/api/testimonials/check-ip", {
+            credentials: "include"
+          });
+          if (checkRes.ok) {
+            const checkData = await checkRes.json();
+            if (checkData.testimonial) {
+              setUserTestimonial(checkData.testimonial);
+              // Pre-fill form fields with existing data
+              setTestimonialName(checkData.testimonial.name);
+              setTestimonialComment(checkData.testimonial.comment);
+              setTestimonialRating(checkData.testimonial.rating || 5);
+            }
+          }
+        } catch (checkErr) {
+          console.warn("Error checking testimonial by IP:", checkErr);
+        }
+
         // Authenticate User
         const authRes = await fetch("https://portfolio-1-716m.onrender.com/authenticate", { credentials: "include" });
         if (authRes.ok) {
           const authData = await authRes.json();
           if (authData) {
             if (!sessionStorage.getItem("welcomeShown")) {
-              toast.info("Welcome to my Portfolio ! Enjoy exploring my portfolio.", { autoClose: 3000 });
+              toast.info("Welcome to my Portfolio! Enjoy exploring my portfolio.", { autoClose: 3000 });
               sessionStorage.setItem("welcomeShown", "true");
             }
             if (authData.role_id === 1) setIsAdmin(true);
@@ -286,38 +307,46 @@ const Home = () => {
   // -----------------------------
   // Testimonial & Project Handlers
   // -----------------------------
+  // Handle Create or Edit Testimonial based on whether userTestimonial exists
   const handleTestimonialSubmit = async (e) => {
     e.preventDefault();
-    const newTestimonial = {
+    const payload = {
       name: testimonialName,
       comment: testimonialComment,
       rating: testimonialRating,
     };
   
     try {
-      const res = await fetch("https://portfolio-1-716m.onrender.com/api/testimonials", {
-        method: "POST",
+      const endpoint = userTestimonial
+        ? `https://portfolio-1-716m.onrender.com/api/testimonials/${userTestimonial.id}`
+        : "https://portfolio-1-716m.onrender.com/api/testimonials";
+  
+      const method = userTestimonial ? "PUT" : "POST";
+  
+      const res = await fetch(endpoint, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newTestimonial),
+        body: JSON.stringify(payload),
       });
   
+      const data = await res.json();
+  
       if (res.ok) {
-        const createdTestimonial = await res.json();
-        setTestimonials((prev) => [createdTestimonial, ...prev]);
-        setTestimonialName("");
-        setTestimonialComment("");
-        setTestimonialRating(5);
-        toast.success("Testimonial submitted!");
-      } else {
-        const errData = await res.json();
-        if (
-          errData.error &&
-          errData.error.toLowerCase().includes("only one testimonial")
-        ) {
-          toast.warn("Your comment already exists. You cannot comment again.");
+        toast.success(userTestimonial ? "Testimonial updated!" : "Testimonial submitted!");
+        // Update local state:
+        setUserTestimonial(data.testimonial || data);
+        if (!userTestimonial) {
+          setTestimonials((prev) => [data, ...prev]);
         } else {
-          toast.error("Error submitting testimonial.");
+          // If updating, refresh testimonials list (optional)
+          setTestimonials((prev) =>
+            prev.map((t) =>
+              t.id === (data.testimonial ? data.testimonial.id : data.id) ? (data.testimonial || data) : t
+            )
+          );
         }
+      } else {
+        toast.error(data.error || "Something went wrong.");
       }
     } catch (err) {
       console.error("Error submitting testimonial:", err);
@@ -334,6 +363,7 @@ const Home = () => {
       });
       if (res.ok) {
         setTestimonials((prev) => prev.filter((t) => t.id !== testimonialId));
+        setUserTestimonial(null); // Clear local testimonial if deleted
         toast.success("Testimonial deleted.");
       }
     } catch (err) {
@@ -456,18 +486,14 @@ const Home = () => {
 
       {/* HERO SECTION */}
       <header className="hero-section">
-        {/* HERO IMAGE (Picture on Top) */}
+        {/* HERO IMAGE */}
         <div className="hero-image animate-on-scroll">
           {profileImageURL && (
-            <img
-              src={profileImageURL}
-              alt="Profile of Tanzim Bin Zahir"
-              loading="lazy"
-            />
+            <img src={profileImageURL} alt="Profile of Tanzim Bin Zahir" loading="lazy" />
           )}
         </div>
 
-        {/* HERO CONTENT (Text, Bio, Buttons, Forms) */}
+        {/* HERO CONTENT */}
         <div className="hero-content animate-on-scroll">
           {editingBio ? (
             <form onSubmit={handleBioSubmit} className="bio-edit-form">
@@ -486,49 +512,25 @@ const Home = () => {
                 placeholder="Describe yourself and your work..."
                 required
               ></textarea>
-              <button type="submit" className="resume-button">
-                Save Bio
-              </button>
-              <button
-                type="button"
-                className="resume-button cancel-button"
-                onClick={toggleEditBio}
-              >
-                Cancel
-              </button>
+              <button type="submit" className="resume-button">Save Bio</button>
+              <button type="button" className="resume-button cancel-button" onClick={toggleEditBio}>Cancel</button>
               {bioMessage && <p className="success-msg">{bioMessage}</p>}
               {bioError && <p className="error-msg">{bioError}</p>}
             </form>
           ) : (
             <>
               <h1>{bioData.name || "Hi, I am Tanzim Bin Zahir, AI Engineer"}</h1>
-              <p>
-                {bioData.description ||
-                  "I help brands stand out with modern digital experiences. My work is focused on building visually engaging, user-friendly solutions."}
-              </p>
-              {isAdmin && (
-                <button className="resume-button" onClick={toggleEditBio}>
-                  Edit Bio
-                </button>
-              )}
+              <p>{bioData.description || "I help brands stand out with modern digital experiences. My work is focused on building visually engaging, user-friendly solutions."}</p>
+              {isAdmin && <button className="resume-button" onClick={toggleEditBio}>Edit Bio</button>}
             </>
           )}
 
           <div className="resume-buttons">
-            <button className="resume-button" onClick={handleResumeDownload}>
-              Download Resume
-            </button>
+            <button className="resume-button" onClick={handleResumeDownload}>Download Resume</button>
             {isAdmin && (
               <>
-                <button className="resume-button" onClick={toggleUploadForm}>
-                  Upload Resume
-                </button>
-                <button
-                  className="profile-image-button"
-                  onClick={toggleProfileImageForm}
-                >
-                  Change Profile Image
-                </button>
+                <button className="resume-button" onClick={toggleUploadForm}>Upload Resume</button>
+                <button className="profile-image-button" onClick={toggleProfileImageForm}>Change Profile Image</button>
               </>
             )}
           </div>
@@ -538,23 +540,11 @@ const Home = () => {
               <div className="form-content">
                 <div className="form-row">
                   <label htmlFor="resume-file">Resume (PDF):</label>
-                  <input
-                    type="file"
-                    id="resume-file"
-                    accept=".pdf"
-                    onChange={handleResumeChange}
-                  />
+                  <input type="file" id="resume-file" accept=".pdf" onChange={handleResumeChange} />
                 </div>
                 <div className="form-actions">
-                  <button className="resume-button" onClick={handleUpload}>
-                    Confirm Upload
-                  </button>
-                  <button
-                    className="resume-button cancel-button"
-                    onClick={toggleUploadForm}
-                  >
-                    Cancel
-                  </button>
+                  <button className="resume-button" onClick={handleUpload}>Confirm Upload</button>
+                  <button className="resume-button cancel-button" onClick={toggleUploadForm}>Cancel</button>
                 </div>
                 {uploadMessage && <p className="success-msg">{uploadMessage}</p>}
                 {uploadError && <p className="error-msg">{uploadError}</p>}
@@ -566,38 +556,15 @@ const Home = () => {
             <div className="upload-form profile-image-form">
               <div className="form-content">
                 <div className="form-row">
-                  <label htmlFor="profile-image-file">
-                    Profile Image (JPG/PNG):
-                  </label>
-                  <input
-                    type="file"
-                    id="profile-image-file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      setProfileImageFile(e.target.files[0])
-                    }
-                  />
+                  <label htmlFor="profile-image-file">Profile Image (JPG/PNG):</label>
+                  <input type="file" id="profile-image-file" accept="image/*" onChange={(e) => setProfileImageFile(e.target.files[0])} />
                 </div>
                 <div className="form-actions">
-                  <button
-                    className="profile-image-button"
-                    onClick={handleProfileImageUpload}
-                  >
-                    Upload Image
-                  </button>
-                  <button
-                    className="profile-image-button cancel-button"
-                    onClick={toggleProfileImageForm}
-                  >
-                    Cancel
-                  </button>
+                  <button className="profile-image-button" onClick={handleProfileImageUpload}>Upload Image</button>
+                  <button className="profile-image-button cancel-button" onClick={toggleProfileImageForm}>Cancel</button>
                 </div>
-                {profileImageUploadMessage && (
-                  <p className="success-msg">{profileImageUploadMessage}</p>
-                )}
-                {profileImageUploadError && (
-                  <p className="error-msg">{profileImageUploadError}</p>
-                )}
+                {profileImageUploadMessage && <p className="success-msg">{profileImageUploadMessage}</p>}
+                {profileImageUploadError && <p className="error-msg">{profileImageUploadError}</p>}
               </div>
             </div>
           )}
@@ -616,12 +583,7 @@ const Home = () => {
         ) : blogs.length > 0 ? (
           <Slider {...sliderSettings}>
             {blogs.map((blog) => (
-              <div
-                key={blog.id}
-                className={`post-card ${
-                  isRecent(blog.date) ? "latest-post" : ""
-                }`}
-              >
+              <div key={blog.id} className={`post-card ${isRecent(blog.date) ? "latest-post" : ""}`}>
                 {isRecent(blog.date) && <span className="new-badge">New</span>}
                 <h3>{blog.title}</h3>
                 <div className="post-meta">
@@ -637,12 +599,7 @@ const Home = () => {
           <p>No recent posts available.</p>
         )}
         <div className="centered-button">
-          <button
-            className="resume-button"
-            onClick={() => navigate("/blogs")}
-          >
-            View All Blogs
-          </button>
+          <button className="resume-button" onClick={() => navigate("/blogs")}>View All Blogs</button>
         </div>
       </section>
 
@@ -659,26 +616,13 @@ const Home = () => {
             {projects.slice(0, 3).map((project) => {
               let screenshots = [];
               try {
-                screenshots = project.screenshots
-                  ? JSON.parse(project.screenshots)
-                  : [];
+                screenshots = project.screenshots ? JSON.parse(project.screenshots) : [];
               } catch (e) {
-                console.warn(
-                  "Invalid screenshots JSON for project",
-                  project.id,
-                  e
-                );
+                console.warn("Invalid screenshots JSON for project", project.id, e);
               }
               return (
-                <article
-                  key={project.id}
-                  className={`work-card ${
-                    project.date && isRecent(project.date) ? "latest-project" : ""
-                  }`}
-                >
-                  {project.date && isRecent(project.date) && (
-                    <span className="new-badge">New</span>
-                  )}
+                <article key={project.id} className={`work-card ${project.date && isRecent(project.date) ? "latest-project" : ""}`}>
+                  {project.date && isRecent(project.date) && <span className="new-badge">New</span>}
                   <div className="screenshots-row">
                     {screenshots.length > 0 &&
                       screenshots.map((screenshot, idx) => (
@@ -690,10 +634,7 @@ const Home = () => {
                               className="pdf-frame"
                               style={{ cursor: "pointer" }}
                               onClick={() => {
-                                setModalItem({
-                                  url: `https://portfolio-1-716m.onrender.com${screenshot}`,
-                                  isPdf: true,
-                                });
+                                setModalItem({ url: `https://portfolio-1-716m.onrender.com${screenshot}`, isPdf: true });
                                 setZoom(1);
                               }}
                             />
@@ -703,12 +644,7 @@ const Home = () => {
                               alt={`Screenshot ${idx + 1}`}
                               className="project-image"
                               style={{ cursor: "pointer" }}
-                              onClick={() =>
-                                setModalItem({
-                                  url: `https://portfolio-1-716m.onrender.com${screenshot}`,
-                                  isPdf: false,
-                                })
-                              }
+                              onClick={() => setModalItem({ url: `https://portfolio-1-716m.onrender.com${screenshot}`, isPdf: false })}
                             />
                           )}
                         </div>
@@ -717,21 +653,12 @@ const Home = () => {
                   <div className="work-info">
                     <h3 className="work-title">{project.title}</h3>
                     <div className="work-meta">
-                      {project.year && (
-                        <span className="work-year">{project.year}</span>
-                      )}
-                      {project.category && (
-                        <span className="work-category">{project.category}</span>
-                      )}
+                      {project.year && <span className="work-year">{project.year}</span>}
+                      {project.category && <span className="work-category">{project.category}</span>}
                     </div>
                     <p className="work-description">{project.description}</p>
                     {isAdmin && (
-                      <button
-                        className="btn delete-btn"
-                        onClick={() => handleDeleteProject(project.id)}
-                      >
-                        Delete Project
-                      </button>
+                      <button className="btn delete-btn" onClick={() => handleDeleteProject(project.id)}>Delete Project</button>
                     )}
                   </div>
                 </article>
@@ -742,86 +669,74 @@ const Home = () => {
           <p>No featured works available.</p>
         )}
         <div className="centered-button">
-          <button className="resume-button" onClick={() => navigate("/work")}>
-            View All Projects
-          </button>
+          <button className="resume-button" onClick={() => navigate("/work")}>View All Projects</button>
         </div>
       </section>
 
-    {/* TESTIMONIALS SECTION */}
-<section className="testimonials animate-on-scroll">
-  <h2>Testimonials</h2>
-  <div className="testimonial-slider">
-    {testimonials.length > 0 ? (
-      testimonials.map((t) => (
-        <blockquote key={t.id} className="testimonial">
-          <p>"{t.comment}"</p>
-          <footer>
-            - {t.name} {t.rating ? renderStars(t.rating) : ""}
-            <br />
-            <span className="testimonial-date">
-              Posted on: {new Date(t.created_at).toLocaleString()}
-            </span>
-            {isAdmin && (
-              <button
-                className="btn delete-btn"
-                onClick={() => handleDeleteTestimonial(t.id)}
-              >
-                Delete
-              </button>
-            )}
-          </footer>
-        </blockquote>
-      ))
-    ) : (
-      <p>No testimonials yet.</p>
-    )}
-  </div>
-  <div className="testimonial-form-container">
-    <h3>Leave a Comment</h3>
-    <form onSubmit={handleTestimonialSubmit} className="testimonial-form">
-      <div>
-        <label htmlFor="testimonialName">Your Name:</label>
-        <input
-          id="testimonialName"
-          type="text"
-          value={testimonialName}
-          onChange={(e) => setTestimonialName(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <label htmlFor="testimonialComment">Comment:</label>
-        <textarea
-          id="testimonialComment"
-          value={testimonialComment}
-          onChange={(e) => setTestimonialComment(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <label>Star Rating:</label>
-        <div className="star-rating">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <span
-              key={star}
-              onClick={() => setTestimonialRating(star)}
-              style={{
-                cursor: "pointer",
-                color: testimonialRating >= star ? "gold" : "gray",
-              }}
-            >
-              {testimonialRating >= star ? "★" : "☆"}
-            </span>
-          ))}
+      {/* TESTIMONIALS SECTION */}
+      <section className="testimonials animate-on-scroll">
+        <h2>Testimonials</h2>
+        <div className="testimonial-slider">
+          {testimonials.length > 0 ? (
+            testimonials.map((t) => (
+              <blockquote key={t.id} className="testimonial">
+                <p>"{t.comment}"</p>
+                <footer>
+                  - {t.name} {t.rating ? renderStars(t.rating) : ""}
+                  <br />
+                  <span className="testimonial-date">Posted on: {new Date(t.created_at).toLocaleString()}</span>
+                  {isAdmin && (
+                    <button className="btn delete-btn" onClick={() => handleDeleteTestimonial(t.id)}>Delete</button>
+                  )}
+                </footer>
+              </blockquote>
+            ))
+          ) : (
+            <p>No testimonials yet.</p>
+          )}
         </div>
-      </div>
-      <button type="submit" className="resume-button">
-        Submit
-      </button>
-    </form>
-  </div>
-</section>
+        <div className="testimonial-form-container">
+          <h3>{userTestimonial ? "Update Your Comment" : "Leave a Comment"}</h3>
+          <form onSubmit={handleTestimonialSubmit} className="testimonial-form">
+            <div>
+              <label htmlFor="testimonialName">Your Name:</label>
+              <input
+                id="testimonialName"
+                type="text"
+                value={testimonialName}
+                onChange={(e) => setTestimonialName(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="testimonialComment">Comment:</label>
+              <textarea
+                id="testimonialComment"
+                value={testimonialComment}
+                onChange={(e) => setTestimonialComment(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label>Star Rating:</label>
+              <div className="star-rating">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <span
+                    key={star}
+                    onClick={() => setTestimonialRating(star)}
+                    style={{ cursor: "pointer", color: testimonialRating >= star ? "gold" : "gray" }}
+                  >
+                    {testimonialRating >= star ? "★" : "☆"}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <button type="submit" className="resume-button">
+              {userTestimonial ? "Update" : "Submit"}
+            </button>
+          </form>
+        </div>
+      </section>
 
       {/* MODAL FOR PREVIEW */}
       {modalItem && !modalItem.isPdf && (
@@ -830,12 +745,7 @@ const Home = () => {
       {modalItem && modalItem.isPdf && (
         <div className="modal-overlay" onClick={() => { setModalItem(null); setZoom(1); }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <iframe 
-              src={modalItem.url} 
-              title="Full PDF Preview" 
-              className="pdf-frame"
-              style={{ width: "100%", height: "100%" }}
-            />
+            <iframe src={modalItem.url} title="Full PDF Preview" className="pdf-frame" style={{ width: "100%", height: "100%" }} />
             <div className="modal-controls">
               <button onClick={() => { setModalItem(null); setZoom(1); }}>Close</button>
             </div>
