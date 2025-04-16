@@ -70,26 +70,42 @@ const Home = () => {
     const now = new Date();
     return now - itemDate < 24 * 60 * 60 * 1000; // less than one day
   };
-
-  // -----------------------------
-  // Helper: Validate Comment Content to Prevent Spam/Editing
-  // -----------------------------
   const validateCommentContent = (comment) => {
+    // Normalize comment for pattern matching
+    const normalized = comment.toLowerCase().trim();
+  
+    // Disallowed patterns
     const bannedPatterns = [
-      /http[s]?:\/\//i,                // links
-      /free\s+money/i,
-      /work\s+from\s+home/i,
-      /bitcoin/i,
-      /crypto/i,
-      /visit\s+my\s+profile/i,
-      /check\s+out\s+my/i,
-      /available\s+24\/7/i,
-      /(earn|make)\s+\$\d+/i,
-      /([a-zA-Z]+\s+){1,3}\1{2,}/i,    // repeated phrases
-      /(.)\1{4,}/i,                   // same char repeated many times
-      /.+\.(com|net|org|xyz|info)/i    // suspicious domains
+      /http[s]?:\/\//,                       // links
+      /(www\.)?[\w\-]+\.(com|net|org|info|xyz|biz|ru|cn)/, // domains
+      /(?:earn|make|get)\s+\$\d+/,           // money talk
+      /work\s+(from\s+)?home/,               // work from home spam
+      /click\s+(here|below)/,
+      /buy\s+now/,                           // pushy marketing
+      /crypto|bitcoin|ethereum|nft/,         // crypto scam keywords
+      /telegram|whatsapp|line|kakaotalk/,     // external chat tools
+      /(?:\b[a-z]+\b\s*){1,3}\1{2,}/i,        // repeated words
+      /(.)\1{5,}/,                            // excessive same char
+      /(\w{1,2})\s+\1\s+\1/,                  // nonsense
+      /^.{0,10}$/,                            // very short junk comments
+      /^.{301,}$/,                            // excessively long
     ];
-    return !bannedPatterns.some((pattern) => pattern.test(comment));
+  
+    // Disallowed phrases (exact matches or substring checks)
+    const bannedPhrases = [
+      "dm me", "promo code", "follow back", "check my page",
+      "visit my profile", "available 24/7", "hire me", "inbox me"
+    ];
+  
+    // Detect excessive emoji use (non-letter, non-space)
+    const excessiveEmojis = /[^\w\s.,!?'"-]{4,}/;
+  
+    // Check all conditions
+    return (
+      !bannedPatterns.some((regex) => regex.test(normalized)) &&
+      !bannedPhrases.some((phrase) => normalized.includes(phrase)) &&
+      !excessiveEmojis.test(comment)
+    );
   };
 
   // -----------------------------
