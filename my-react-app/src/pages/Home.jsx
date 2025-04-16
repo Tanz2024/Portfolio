@@ -68,48 +68,32 @@ const Home = () => {
   const isRecent = (dateString) => {
     const itemDate = new Date(dateString);
     const now = new Date();
-    return now - itemDate < 24 * 60 * 60 * 1000; // less than one day
-  };
-  const validateCommentContent = (comment) => {
-    // Normalize comment for pattern matching
-    const normalized = comment.toLowerCase().trim();
-  
-    // Disallowed patterns
-    const bannedPatterns = [
-      /http[s]?:\/\//,                       // links
-      /(www\.)?[\w\-]+\.(com|net|org|info|xyz|biz|ru|cn)/, // domains
-      /(?:earn|make|get)\s+\$\d+/,           // money talk
-      /work\s+(from\s+)?home/,               // work from home spam
-      /click\s+(here|below)/,
-      /buy\s+now/,                           // pushy marketing
-      /crypto|bitcoin|ethereum|nft/,         // crypto scam keywords
-      /telegram|whatsapp|line|kakaotalk/,     // external chat tools
-      /(?:\b[a-z]+\b\s*){1,3}\1{2,}/i,        // repeated words
-      /(.)\1{5,}/,                            // excessive same char
-      /(\w{1,2})\s+\1\s+\1/,                  // nonsense
-      /^.{0,10}$/,                            // very short junk comments
-      /^.{301,}$/,                            // excessively long
-    ];
-  
-    // Disallowed phrases (exact matches or substring checks)
-    const bannedPhrases = [
-      "dm me", "promo code", "follow back", "check my page",
-      "visit my profile", "available 24/7", "hire me", "inbox me"
-    ];
-  
-    // Detect excessive emoji use (non-letter, non-space)
-    const excessiveEmojis = /[^\w\s.,!?'"-]{4,}/;
-  
-    // Check all conditions
-    return (
-      !bannedPatterns.some((regex) => regex.test(normalized)) &&
-      !bannedPhrases.some((phrase) => normalized.includes(phrase)) &&
-      !excessiveEmojis.test(comment)
-    );
+    return now - itemDate < 24 * 60 * 60 * 1000;
   };
 
   // -----------------------------
-  // Fetch Data & Authenticate User
+  // Helper: Validate Comment Content to Prevent Spam
+  // -----------------------------
+  const validateCommentContent = (comment) => {
+    const bannedPatterns = [
+      /http[s]?:\/\//i,
+      /free\s+money/i,
+      /work\s+from\s+home/i,
+      /bitcoin/i,
+      /crypto/i,
+      /visit\s+my\s+profile/i,
+      /check\s+out\s+my/i,
+      /available\s+24\/7/i,
+      /(earn|make)\s+\$\d+/i,
+      /([a-zA-Z]+\s+){1,3}\1{2,}/i,
+      /(.)\1{4,}/i,
+      /.+\.(com|net|org|xyz|info)/i
+    ];
+    return !bannedPatterns.some((pattern) => pattern.test(comment));
+  };
+
+  // -----------------------------
+  // Data Fetching and Authentication
   // -----------------------------
   useEffect(() => {
     const fetchData = async () => {
@@ -321,31 +305,31 @@ const Home = () => {
   };
 
   // -----------------------------
-  // Testimonial Handlers (Submission Only - Editing Disabled)
+  // Testimonial Handlers (Submission Only - No Editing Allowed)
   // -----------------------------
   const handleTestimonialSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateCommentContent(testimonialComment)) {
       toast.error("Your comment appears spammy or violates our guidelines.");
       return;
     }
-    
+
     const payload = {
       name: testimonialName,
       comment: testimonialComment,
       rating: testimonialRating,
     };
-    
+
     try {
       const res = await fetch("https://portfolio-1-716m.onrender.com/api/testimonials", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
-      
+
       const data = await res.json();
-      
+
       if (res.ok) {
         toast.success("Testimonial submitted!");
         setTestimonials((prev) => [data, ...prev]);
@@ -361,7 +345,7 @@ const Home = () => {
       toast.error("Error submitting testimonial.");
     }
   };
-  
+
   const handleDeleteTestimonial = async (testimonialId) => {
     if (!window.confirm("Are you sure you want to delete this testimonial?")) return;
     try {
@@ -493,7 +477,6 @@ const Home = () => {
 
       {/* HERO SECTION */}
       <header className="hero-section">
-        {/* HERO IMAGE (Picture on Top) */}
         <div className="hero-image animate-on-scroll">
           {profileImageURL && (
             <img
@@ -503,8 +486,6 @@ const Home = () => {
             />
           )}
         </div>
-
-        {/* HERO CONTENT (Text, Bio, Buttons, Forms) */}
         <div className="hero-content animate-on-scroll">
           {editingBio ? (
             <form onSubmit={handleBioSubmit} className="bio-edit-form">
@@ -612,9 +593,7 @@ const Home = () => {
                     type="file"
                     id="profile-image-file"
                     accept="image/*"
-                    onChange={(e) =>
-                      setProfileImageFile(e.target.files[0])
-                    }
+                    onChange={(e) => setProfileImageFile(e.target.files[0])}
                   />
                 </div>
                 <div className="form-actions">
@@ -700,9 +679,7 @@ const Home = () => {
               return (
                 <article
                   key={project.id}
-                  className={`work-card ${
-                    project.date && isRecent(project.date) ? "latest-project" : ""
-                  }`}
+                  className={`work-card ${project.date && isRecent(project.date) ? "latest-project" : ""}`}
                 >
                   {project.date && isRecent(project.date) && (
                     <span className="new-badge">New</span>
@@ -718,10 +695,7 @@ const Home = () => {
                               className="pdf-frame"
                               style={{ cursor: "pointer" }}
                               onClick={() => {
-                                setModalItem({
-                                  url: `https://portfolio-1-716m.onrender.com${screenshot}`,
-                                  isPdf: true,
-                                });
+                                setModalItem({ url: `https://portfolio-1-716m.onrender.com${screenshot}`, isPdf: true });
                                 setZoom(1);
                               }}
                             />
@@ -731,12 +705,7 @@ const Home = () => {
                               alt={`Screenshot ${idx + 1}`}
                               className="project-image"
                               style={{ cursor: "pointer" }}
-                              onClick={() =>
-                                setModalItem({
-                                  url: `https://portfolio-1-716m.onrender.com${screenshot}`,
-                                  isPdf: false,
-                                })
-                              }
+                              onClick={() => setModalItem({ url: `https://portfolio-1-716m.onrender.com${screenshot}`, isPdf: false })}
                             />
                           )}
                         </div>
@@ -746,9 +715,7 @@ const Home = () => {
                     <h3 className="work-title">{project.title}</h3>
                     <div className="work-meta">
                       {project.year && <span className="work-year">{project.year}</span>}
-                      {project.category && (
-                        <span className="work-category">{project.category}</span>
-                      )}
+                      {project.category && <span className="work-category">{project.category}</span>}
                     </div>
                     <p className="work-description">{project.description}</p>
                     {isAdmin && (

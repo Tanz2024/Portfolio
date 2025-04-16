@@ -631,44 +631,55 @@ app.get('/api/public/profile-image', async (req, res) => {
 // -----------------------------
 // TESTIMONIALS API
 // -----------------------------
-
-// GET: Retrieve all testimonials (publicly accessible)
-app.get("/api/testimonials", async (req, res) => {
-  try {
-    const result = await pool.query(
-      "SELECT * FROM testimonials ORDER BY created_at DESC"
-    );
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-app.post("/api/testimonials", async (req, res) => {
+// Helper: Check for spammy/repetitive content
+function isSpammyComment(comment) {
+  // Define banned patterns; adjust these patterns as needed
+  const bannedPatterns = [
+    /http[s]?:\/\//i,                 // block links
+    /free\s+money/i,
+    /work\s+from\s+home/i,
+    /bitcoin|crypto/i,
+    /check\s+(my|out)/i,
+    /(earn|make)\s+\$\d+/i,
+    /(.)\1{4,}/i,                   // repeated characters
+    /.+\.(com|net|xyz|org)/i          // suspicious domains
+  ];
+  return bannedPatterns.some((pattern) => pattern.test(comment));
+}
+// POST: Create a new testimonial (Rate-limited and with spam filtering)
+app.post("/api/testimonials", testimonialLimiter, async (req, res) => {
   const { name, comment, rating } = req.body;
+  
   if (!name || !comment) {
     return res.status(400).json({ error: "Name and comment are required." });
   }
-
-  const rawIp = req.ip;
+  
+  // Check spammy content
+  if (isSpammyComment(comment)) {
+    return res.status(400).json({ error: "Comment appears spammy or contains banned content." });
+  }
+  
+  // Get the real IP address (works behind proxies)
+  const rawIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress;
   const hashedIp = hashIP(rawIp);
   console.log("User IP (for debug):", rawIp);
-
+  
   try {
-    // ✅ Check if this IP already submitted a testimonial
+    // Check if this IP already submitted a testimonial
     const check = await pool.query(
       "SELECT id FROM testimonials WHERE ip_address = $1",
       [hashedIp]
     );
     if (check.rows.length > 0) {
       return res.status(409).json({
-        error: "You have already submitted a testimonial. You can only edit it.",
+        error: "You have already submitted a testimonial. You can only edit your own testimonial."
       });
     }
-
-    // ✅ Insert new testimonial
+    
+    // Insert new testimonial along with raw IP and hashed IP
     const result = await pool.query(
-      "INSERT INTO testimonials (name, comment, rating, ip_address) VALUES ($1, $2, $3, $4) RETURNING *",
-      [name, comment, rating || null, hashedIp]
+      "INSERT INTO testimonials (name, comment, rating, ip_address, ip_raw) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+      [name, comment, rating || null, hashedIp, rawIp]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -677,16 +688,13 @@ app.post("/api/testimonials", async (req, res) => {
   }
 });
 
-
-
-// PUT: Update a testimonial (guest can only update their own testimonial based on IP matching)
+// PUT: Update a testimonial (guest can update only if IP matches)
 app.put("/api/testimonials/:id", async (req, res) => {
   const { name, comment, rating } = req.body;
   // Get the raw IP address and hash it
-  const rawIp = req.ip;
+  const rawIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress;
   const hashedIp = hashIP(rawIp);
   
-
   try {
     // Verify that the testimonial exists and that the IP address matches
     const existing = await pool.query(
@@ -699,7 +707,7 @@ app.put("/api/testimonials/:id", async (req, res) => {
     if (existing.rows[0].ip_address !== hashedIp) {
       return res.status(403).json({ error: "You can only edit your own testimonial." });
     }
-
+    
     // Update the testimonial
     const result = await pool.query(
       `UPDATE testimonials
@@ -732,6 +740,19 @@ app.delete("/api/testimonials/:id", verifyAdmin, async (req, res) => {
   }
 });
 
+// -----------------------------
+// ADMIN ENDPOINT: View all testimonials with raw IPs
+// -----------------------------
+app.get("/api/admin/testimonials", verifyAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT id, name, comment, rating, created_at, ip_raw FROM testimonials ORDER BY created_at DESC"
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // GET public profile info (for bio) – no authentication required
 app.get('/api/public/profile', async (req, res) => {
