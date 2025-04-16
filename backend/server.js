@@ -646,8 +646,7 @@ function isSpammyComment(comment) {
   ];
   return bannedPatterns.some((pattern) => pattern.test(comment));
 }
-// POST: Create a new testimonial (Rate-limited and with spam filtering)
-app.post("/api/testimonials", testimonialLimiter, async (req, res) => {
+app.post("/api/testimonials", async (req, res) => {
   const { name, comment, rating } = req.body;
   
   if (!name || !comment) {
@@ -665,7 +664,7 @@ app.post("/api/testimonials", testimonialLimiter, async (req, res) => {
   console.log("User IP (for debug):", rawIp);
   
   try {
-    // Check if this IP already submitted a testimonial
+    // Check if this IP already submitted a testimonial (permanently restrict duplicate IPs)
     const check = await pool.query(
       "SELECT id FROM testimonials WHERE ip_address = $1",
       [hashedIp]
@@ -688,15 +687,16 @@ app.post("/api/testimonials", testimonialLimiter, async (req, res) => {
   }
 });
 
-// PUT: Update a testimonial (guest can update only if IP matches)
+// -----------------------------
+// PUT: Update a testimonial (Only allowed if the same IP submitted it)
+// -----------------------------
 app.put("/api/testimonials/:id", async (req, res) => {
   const { name, comment, rating } = req.body;
-  // Get the raw IP address and hash it
   const rawIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress;
   const hashedIp = hashIP(rawIp);
   
   try {
-    // Verify that the testimonial exists and that the IP address matches
+    // Verify the testimonial exists and that the IP address matches
     const existing = await pool.query(
       "SELECT ip_address FROM testimonials WHERE id = $1",
       [req.params.id]
@@ -724,7 +724,9 @@ app.put("/api/testimonials/:id", async (req, res) => {
   }
 });
 
-// DELETE: Remove a testimonial (admin only)
+// -----------------------------
+// DELETE: Remove a testimonial (Admin only)
+// -----------------------------
 app.delete("/api/testimonials/:id", verifyAdmin, async (req, res) => {
   try {
     const result = await pool.query(
@@ -741,7 +743,7 @@ app.delete("/api/testimonials/:id", verifyAdmin, async (req, res) => {
 });
 
 // -----------------------------
-// ADMIN ENDPOINT: View all testimonials with raw IPs
+// ADMIN ENDPOINT: View all testimonials with raw IPs (for moderation)
 // -----------------------------
 app.get("/api/admin/testimonials", verifyAdmin, async (req, res) => {
   try {
